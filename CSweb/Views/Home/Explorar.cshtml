@@ -1,0 +1,314 @@
+@model CSweb.Models.ExplorarViewModel
+
+@{
+    ViewData["Title"] = "Explorar";
+    Layout = "_Layout";
+}
+
+
+
+<div class="py-5">
+    <div class="container">
+
+        <div class="mb-5">
+
+            @* 
+                GET:
+                Este formulario usa GET porque solo busca/consulta prompts.
+                No guarda información nueva.
+            *@
+            @using (Html.BeginForm("Explorar", "Home", FormMethod.Get))
+            {
+                <div class="row justify-content-center mb-4">
+                    <div class="col-12 col-md-8 col-lg-6">
+
+                        <div class="explorar-search-container d-flex align-items-center px-3 py-1">
+
+                            <i class="bi bi-search text-muted ms-2"></i>
+
+                            <input class="form-control explorar-search-input"
+                                    type="search"
+                                    name="query"
+                                    placeholder="Buscar prompts..."
+                                    aria-label="Buscar"
+                                    value="@Model.Query" />
+
+                            <button class="btn explorar-btn-search ms-2 px-4" type="submit">
+                                Buscar
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                @foreach (var filter in Model.Filters)
+                {
+                    <a href="@Url.Action("Explorar", "Home", new { query = Model.Query, filtro = filter })"
+                    class="btn filtro-btn rounded-pill px-4 py-2 @(Model.FiltroActivo == filter ? "active" : "")">
+
+                        @if (filter == "Tendencias")
+                        {
+                            <span>↗ </span>
+                        }
+
+                        @if (filter == "Recientes")
+                        {
+                            <span>⏱ </span>
+                        }
+
+                        @if (filter == "Más Gustados")
+                        {
+                            <span>♡ </span>
+                        }
+
+                        @if (filter == "Más Guardados")
+                        {
+                            <span>🔖 </span>
+                        }
+
+                        @filter
+                    </a>
+                }
+            </div>
+
+        </div>
+
+        <div class="row g-4" id="promptsGrid">
+
+            @if (Model?.Prompts != null && Model.Prompts.Count > 0)
+            {
+                @foreach (var prompt in Model.Prompts)
+                {
+                    <div class="col-12 col-lg-6 prompt-item">
+
+                        <div class="card prompt-card h-100 border-0 shadow-lg rounded-4">
+                            <div class="card-body p-4">
+
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+
+                                    <a asp-controller="Home"
+                                       asp-action="Perfil"
+                                       class="d-flex align-items-center gap-3 text-start text-decoration-none text-dark">
+
+                                        <div class="avatar-circle text-white fw-semibold"
+                                             style="background-color:@prompt.CircleColor">
+                                            @prompt.InitialsProfile
+                                        </div>
+
+                                        <div>
+                                            <p class="mb-0 fw-semibold small">@prompt.AuthorName</p>
+                                            <p class="mb-0 text-muted extra-small">@@@prompt.Username</p>
+                                        </div>
+
+                                    </a>
+
+                                    @if (prompt.Trending)
+                                    {
+                                        <span class="badge tendencia-badge rounded-pill px-3 py-2">
+                                            ↗ Tendencia
+                                        </span>
+                                    }
+
+                                </div>
+
+                                <div class="mb-3">
+                                    <h3 class="h5 fw-semibold mb-2">@prompt.Title</h3>
+
+                                    <span class="badge categoria-badge rounded-pill px-3 py-2">
+                                        @prompt.Category
+                                    </span>
+                                </div>
+
+                                <div class="prompt-content rounded-4 p-3 mb-4">
+                                    <p class="mb-0 text-muted small lh-base">
+                                        @prompt.Prompt
+                                    </p>
+                                </div>
+
+                                <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+
+                                    <div class="d-flex align-items-center gap-4 text-muted">
+
+                                        @* 
+                                            Like:
+                                            Por ahora solo cambia visualmente con JavaScript.
+                                            Después se puede guardar en base de datos con POST o API.
+                                        *@
+                                        <button type="button"
+                                                class="stat-icon-btn like-btn"
+                                                onclick="toggleLike(this)">
+                                            <i class="bi bi-heart"></i>
+                                            <span class="like-count">@prompt.Likes</span>
+                                        </button>
+
+                                        @* 
+                                            Comentarios:
+                                            Este botón solo abre/cierra la sección de comentarios.
+                                        *@
+                                        <button type="button"
+                                                class="stat-icon-btn"
+                                                onclick="toggleComments(@prompt.Id)">
+                                            <i class="bi bi-chat"></i>
+                                            <span class="comment-count">@prompt.Comments</span>
+                                        </button>
+
+                                        @* 
+                                            Guardar:
+                                            Por ahora solo cambia visualmente con JavaScript.
+                                            Después se puede guardar en base de datos con POST o API.
+                                        *@
+                                        <button type="button"
+                                                class="stat-icon-btn save-btn"
+                                                onclick="toggleSave(this)">
+                                            <i class="bi bi-bookmark"></i>
+                                            <span class="save-count">@prompt.Saves</span>
+                                        </button>
+
+                                    </div>
+
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="text-muted extra-small">@prompt.CreatedAt</span>
+
+                                        <button type="button" class="stat-icon-btn share-icon-btn">
+                                            <i class="bi bi-share"></i>
+                                        </button>
+                                    </div>
+
+                                </div>
+
+                                <div class="comment-section mt-4 pt-4 border-top" id="comments-@prompt.Id">
+
+                                    @* 
+                                        Comentario:
+                                        Se ve igual que un formulario, pero NO usa submit.
+                                        El botón llama a JavaScript para mandar el comentario al back.
+                                    *@
+                                    <div class="d-flex gap-2">
+
+                                        <input type="hidden"
+                                               id="promptId-@prompt.Id"
+                                               value="@prompt.Id" />
+
+                                        <input type="text"
+                                               id="commentInput-@prompt.Id"
+                                               class="form-control rounded-4 comment-input"
+                                               placeholder="Añadir un comentario..." />
+
+                                        <button type="button"
+                                                class="btn publicar-btn rounded-4 px-3"
+                                                onclick="publicarComentario(@prompt.Id)">
+                                            Publicar
+                                        </button>
+
+                                    </div>
+
+                                    <p class="text-muted extra-small mt-2 mb-0">
+                                        Sé respetuoso y constructivo en tus comentarios
+                                    </p>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <div class="display-3 mb-3">✨</div>
+                    <h3 class="h4 mb-2">No se encontraron prompts</h3>
+                    <p class="text-muted">Intenta ajustar tu búsqueda o filtros</p>
+                </div>
+            }
+
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+        function toggleLike(button) {
+            button.classList.toggle("liked");
+
+            const icon = button.querySelector("i");
+            const countElement = button.querySelector(".like-count");
+            let count = parseInt(countElement.innerText);
+
+            if (button.classList.contains("liked")) {
+                icon.classList.remove("bi-heart");
+                icon.classList.add("bi-heart-fill");
+
+                countElement.innerText = count + 1;
+            } else {
+                icon.classList.remove("bi-heart-fill");
+                icon.classList.add("bi-heart");
+
+                countElement.innerText = count - 1;
+            }
+        }
+
+        function toggleSave(button) {
+            button.classList.toggle("saved");
+
+            const icon = button.querySelector("i");
+            const countElement = button.querySelector(".save-count");
+            let count = parseInt(countElement.innerText);
+
+            if (button.classList.contains("saved")) {
+                icon.classList.remove("bi-bookmark");
+                icon.classList.add("bi-bookmark-fill");
+
+                countElement.innerText = count + 1;
+            } else {
+                icon.classList.remove("bi-bookmark-fill");
+                icon.classList.add("bi-bookmark");
+
+                countElement.innerText = count - 1;
+            }
+        }
+
+        function toggleComments(id) {
+            const comments = document.getElementById("comments-" + id);
+            comments.classList.toggle("show");
+        }
+
+        function publicarComentario(promptId) {
+            const input = document.getElementById("commentInput-" + promptId);
+            const comentario = input.value;
+
+            const datos = new FormData();
+            datos.append("promptId", promptId);
+            datos.append("comentario", comentario);
+
+            fetch("/Home/PublicarComentario", {
+                method: "POST",
+                body: datos
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensaje);
+
+                if (data.ok) {
+                    const commentSection = input.closest(".comment-section");
+                    const card = commentSection.closest(".prompt-card");
+                    const countElement = card.querySelector(".comment-count");
+
+                    if (countElement) {
+                        countElement.innerText = parseInt(countElement.innerText) + 1;
+                    }
+
+                    input.value = "";
+                }
+            })
+            .catch(error => {
+                alert("Ocurrió un error al publicar el comentario.");
+            });
+        }
+    </script>
+}
