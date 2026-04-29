@@ -43,15 +43,17 @@
             {
                 @for(int i = 0; i < Model.Usuarios.Count && i < 100; i++)
                 {
-                    <div class="card p-2 mb-2 border-light rounded-4" style="background: #9ec8ef;">
+                    <div class="card p-3 mb-3 border-light rounded-4 shadow-sm" style="background: #81b3d7;">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-3 w-100">
-                                <img src="@Model.Usuarios[i].imagen" class="rounded-circle" width="50">
-                                <div>
-                                    <h6 class="mb-0 ">@Model.Usuarios[i].userName</h6>
-                                    <small class="text-muted">@Model.Usuarios[i].Puntos puntos</small>
-                                </div>
-                                <span class="text-muted ms-auto fs-6">TOP @Model.Usuarios[i].Posicion</span>
+                                <img src="@Model.Usuarios[i].imagen" class="rounded-circle" width="80">
+                                
+                                <h5 class="mb-0 ">@Model.Usuarios[i].userName</h5>
+                                 
+                                <h6 class="mb-0 ">@Model.Usuarios[i].Puntos puntos</h6>
+                                    
+                                
+                                <span class=" ms-auto fs-6">TOP @Model.Usuarios[i].Posicion</span>
                             </div>
                         </div>
                     </div>
@@ -61,15 +63,15 @@
             <!--fila de usuario-->
             @if(Model?.UsuarioActual != null)
             {
-                <div class="card p-2 mb-2 border-light rounded-4" style="background: #d4a574;">
+                <div class="card p-2 mb-2 border-light rounded-4 shadow-sm" style="background: #d4a574 ;">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-3 w-100">
-                            <img src="@Model.UsuarioActual.imagen" class="rounded-circle" width="50">
-                            <div>
-                                <h6 class="mb-0">@Model.UsuarioActual.userName (TÚ)</h6>
-                                <small class="text-muted">@Model.UsuarioActual.Puntos puntos</small>
-                            </div>
-                            <span class="text-muted ms-auto fs-6">TOP @Model.UsuarioActual.Posicion</span>
+                            <img src="@Model.UsuarioActual.imagen" class="rounded-circle" width="80">
+                            
+                            <h5 class="mb-0">@Model.UsuarioActual.userName (TÚ)</h5>
+                            <h6 class="mb-0">@Model.UsuarioActual.Puntos puntos</h6>
+                            
+                            <span class=" ms-auto fs-6">TOP @Model.UsuarioActual.Posicion</span>
                         </div>
                     </div>
                 </div>
@@ -86,28 +88,28 @@
             <!--contenedor con posicion del usuario-->
             @if(Model?.UsuarioActual != null)
             {
-                <div class="card p-4 mb-4 border-light rounded-4 d-flex flex-column align-items-start " style= "background: #13518b;" >
-                    <h4 class="text-white  mb-4">Tu posición</h4>
+                <div class="card p-4 mb-4 border-light rounded-4 d-flex flex-column align-items-start shadow-sm fondo-degradado_R" >
+                    <h5 class="text-white  mb-4">Tu posición</h5>
 
                     <!--circulo con pos-->
-                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center bg-opacity-10 mb-3" style="width: 60px; height: 60px; background: #1663ab24;">
-                        <span class="text-white fs-3">@Model.UsuarioActual.Posicion</span>
+                    <div class=" rounded-circle d-flex align-items-center justify-content-center  mb-3" style="width: 55px; height: 55px; background: #4980acb4;">
+                        <span class="text-white fs-3 fw-bold">@Model.UsuarioActual.Posicion</span>
                     </div>
                     <!--contenedor con puntos -->
-                    <div class=" d-flex align-items-center gap-2  mb-3">
+                    <div class=" d-flex align-items-start gap-2 p-4 mb-4 mt-2 border-light rounded-3 w-100 " style= "background: #4980acaf;">
                      <!--imagen puntos-->
                         <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="white" class="bi bi-award-fill" viewBox="0 0 16 16">
                             <path d="m8 0 1.669.864 1.858.282.842 1.68 1.337 1.32L13.4 6l.306 1.854-1.337 1.32-.842 1.68-1.858.282L8 12l-1.669-.864-1.858-.282-.842-1.68-1.337-1.32L2.6 6l-.306-1.854 1.337-1.32.842-1.68L6.331.864z"/>
                             <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1z"/>
                         </svg>
-                        <h5 class="text-white mb-0">@Model.UsuarioActual.Puntos Puntos</h5>
+                        <h6 class="text-white mb-0 ">@Model.UsuarioActual.Puntos Puntos</h6>
                     </div>
                 </div>
             }
 
             <!--contenedor con guia de puntos -->
 
-            <div class ="card  p-4 mb-4 border-light rounded-4  shadow d-flex flex-column align-items-start" style= "background: #13518b;">
+            <div class ="card  p-4 mb-4 border-light rounded-4  shadow-sm d-flex flex-column align-items-start" style= "background: #2E6080">
                 <!--titulo-->
                 <div class=" d-flex align-items-center gap-2  mb-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" class="bi bi-stars" viewBox="0 0 16 16">

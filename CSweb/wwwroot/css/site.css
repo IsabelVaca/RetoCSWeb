@@ -80,3 +80,9 @@ body {
         top: 50%;
         transform: translateY(-50%);
     }
+
+    /*fuente: https://cssgradient.io/*/
+    .fondo-degradado_R {
+      background: #145e80;
+      background: linear-gradient(to bottom right,rgba(20, 94, 128, 1) 0%, rgba(39, 125, 168, 1) 78%, rgba(8, 127, 207, 1) 100%);
+}
