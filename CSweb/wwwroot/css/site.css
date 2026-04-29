@@ -60,7 +60,7 @@ body {
     }
 
     .btn-search {
-        background-color: #007bff;
+        background-color: #104B70;
         color: white;
         border-radius: 50px;
         padding: 5px 15px;
@@ -69,8 +69,9 @@ body {
     }
 
     .btn-search:hover {
-        background-color: #0056b3;
+        background-color: #104B70;
         transform: scale(1.05);
+        color: white;
     }
 
     .search-icon {
@@ -83,6 +84,221 @@ body {
 
     /*fuente: https://cssgradient.io/*/
     .fondo-degradado_R {
-      background: #145e80;
-      background: linear-gradient(to bottom right,rgba(20, 94, 128, 1) 0%, rgba(39, 125, 168, 1) 78%, rgba(8, 127, 207, 1) 100%);
+        background: #145e80;
+        background: linear-gradient(to bottom right,rgba(20, 94, 128, 1) 0%, rgba(39, 125, 168, 1) 78%, rgba(8, 127, 207, 1) 100%);
+    
+}
+
+
+/*ximena explorar */
+
+body {
+    background-color: #f6f7fb;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.main-content {
+    padding-top: 90px;
+}
+
+/* toolbar */
+.tb-container {
+    z-index: 1; /* capas, para q el toolbar siempre este encima de todo */
+    /* hace invisible el contenedor */
+    pointer-events: none; /* permite seleccionar y picarle a botones q estan detras/arriba del toolbar */
+    /* mouse logra traspasar si existe un elemento en con una capa mayor */
+}
+
+.tb-container nav,
+/* hace solido el contenedor de los botones para poder hacer click */
+.tb-container .dropdown {
+    pointer-events: auto;
+}
+
+.tb-profile-space {
+    margin-left: 355px;
+}
+
+
+.toolbar-icon {
+    min-width: 48px;
+    text-align: center;
+    color: #4e545a;
+    transition: 0.2s ease;
+}
+
+.toolbar-icon:hover {
+    background-color: #f1f3f5;
+    transform: scale(1.05);
+}
+
+.toolbar-icon.active {
+    background-color: #104B70;
+    color: white !important;
+    box-shadow: 0 0.4rem 0.8rem rgba(16, 75, 112, 0.25);
+}
+
+.profile-circle {
+    width: 32px;
+    height: 32px;
+    background-color: #83AFCA;
+    font-size: 13px;
+}
+
+
+/* pag explorar  */
+
+/* contenedor de la barra de busqueda */
+/* reemplaza la search bar anterior */
+.explorar-search-container {
+    background-color: white;
+    border-radius: 50px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: 0.3s ease;
+}
+
+/* efecto cuando pasas el mouse encima de la barra */
+.explorar-search-container:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* input de la barra de busqueda */
+.form-control.explorar-search-input {
+    border: none;
+    background-color: transparent;
+    height: 40px;
+    font-size: 1rem;
+}
+
+/* quita el borde azul default al escribir */
+.form-control.explorar-search-input:focus {
+    box-shadow: none;
+    outline: none;
+    background-color: transparent;
+}
+
+/* boton buscar */
+.explorar-btn-search {
+    background-color: #104B70;
+    color: white;
+    border-radius: 50px;
+    border: none;
+    transition: 0.3s ease;
+}
+
+/* efecto del boton buscar */
+.explorar-btn-search:hover {
+    background-color: #0c3b59;
+    color: white;
+    transform: scale(1.05);
+}
+
+.filtro-btn {
+    background-color: white;
+    color: #4e545a;
+    border: 1px solid transparent;
+    font-size: 14px;
+    font-weight: 500;
+    transition: 0.2s ease;
+}
+
+.filtro-btn:hover,
+.filtro-btn.active {
+    background-color: #104B70;
+    color: white;
+    box-shadow: 0 0.5rem 1rem rgba(16, 75, 112, 0.15);
+}
+
+.prompt-card {
+    background-color: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(10px);
+    transition: 0.25s ease;
+}
+
+.prompt-card:hover {
+    transform: translateY(-4px);
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.extra-small {
+    font-size: 12px;
+}
+
+.tendencia-badge {
+    background: linear-gradient(90deg, #F7AA63, #DC844E);
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.categoria-badge {
+    background-color: rgba(16, 75, 112, 0.1);
+    color: #104B70;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.prompt-content {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+.comment-section {
+    display: none;
+}
+
+.comment-section.show {
+    display: block;
+}
+
+.comment-input {
+    background-color: rgba(0, 0, 0, 0.035);
+}
+
+.publicar-btn {
+    background-color: #104B70;
+    color: white;
+    font-size: 14px;
+}
+
+.publicar-btn:hover {
+    background-color: #0c3b59;
+    color: white;
+}
+
+/* botones de estadisticas de los prompts */
+/* son botones, pero se ven como iconos con número */
+.stat-icon-btn {
+    border: none;
+    background-color: transparent;
+    color: #4e545a;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    transition: 0.2s ease;
+}
+
+/* efecto cuando pasas el mouse encima */
+.stat-icon-btn:hover {
+    color: #104B70;
+    transform: scale(1.05);
+}
+
+/* cuando el usuario ya dio like */
+.like-btn.liked {
+    color: #dc3545;
+}
+
+/* cuando el usuario ya guardó */
+.save-btn.saved {
+    color: #0d6efd;
 }
