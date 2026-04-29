@@ -355,6 +355,25 @@ public class HomeController : Controller
         return View();
     }
 
+
+
+    public IActionResult Crear()
+    {
+        PromptViewModelCrear prompt = new PromptViewModelCrear();
+
+        return View(prompt);
+    }
+
+[HttpPost]
+    public IActionResult Create(PromptViewModelCrear prompt)
+    {
+       
+
+        ViewData["Mensaje"] = "Se guardó correctamente tu prompt";
+
+        return View(prompt);
+}
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

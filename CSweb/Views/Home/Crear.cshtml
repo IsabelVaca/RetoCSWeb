@@ -1,0 +1,269 @@
+@model CSweb.Models.PromptViewModelCrear
+
+<!--CSS de esta pantalla (estilos.css)-->
+@section Styles {
+    <link rel="stylesheet" href="~/css/estilos.css" asp-append-version="true" />
+}
+
+<!-- contenedor general de la página -->
+<div class="create-page py-4">
+    <div class="container">
+
+        <!-- grid principal: divide la pantalla en columna izquierda y columna derecha -->
+        <div class="main-grid">
+
+            <!--columna izquierda-->
+            <main>
+
+                <!--card principal del formulario-->
+                <section class="card-form">
+
+                    <!--título de card del formulario-->
+                    <h2 class="card-title-custom">
+                        <i class="bi bi-stars"></i>
+                        Crea tu Prompt
+                    </h2>
+
+                    <!-- formulario que manda los datos al método Create del HomeController -->
+                    <form method="post" asp-action="Crear">
+
+                    <!-- campo:Título -->
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Título</label>
+
+                            <input asp-for="Title"
+                                   class="form-control form-control-custom"
+                                   placeholder="Dale un título a tu creación..." />
+                        </div>
+
+                    <!-- campo:Descripción -->
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Descripción</label>
+
+                            <input asp-for="Description"
+                                   class="form-control form-control-custom"
+                                   placeholder="Describe brevemente de qué trata tu prompt..." />
+                        </div>
+
+                    <!-- campo:Prompt -->
+                        <div class="mb-4">
+                            <label asp-for="Prompt" class="form-label">Prompt</label>
+
+                            <textarea asp-for="Prompt"
+                                      rows="10"
+                                      class="form-control form-control-custom"
+                                      placeholder="Escribe aquí el prompt completo que quieres publicar..."></textarea>
+                        </div>
+
+                        <!-- botones del formulario -->
+                        <div class="button-row">
+
+                            <!-- botón Publicar (empieza desactivado y se activa con JavaScript cuando los campos tienen texto) -->
+                            <button id="generateButton" type="submit" class="btn btn-generate" disabled>
+                                Publicar
+                            </button>
+
+                            <!-- botón para limpiar formulario -->
+                            <button id="clearButton" type="button" class="btn btn-clear">
+                                Limpiar
+                            </button>
+
+                        </div>
+                    </form>
+                </section>
+
+                <!-- card prompts de ejemplo -->
+                <section class="card-custom">
+
+                    <h3 class="card-title-custom">
+                        <i class="bi bi-rainbow"></i>
+                        Prompts de Ejemplo
+                    </h3>
+
+                    <!-- lista de ejemplos-->
+                    <ul class="example-list">
+                        <li>
+                            Un espacio de trabajo minimalista y sereno con iluminación natural, escritorio de madera y plantas verdes.
+                        </li>
+
+                        <li>
+                            Arte geométrico abstracto con degradados vibrantes de púrpura y azul, moderno y dinámico.
+                        </li>
+
+                        <li>
+                            Rincón acogedor de lectura en una biblioteca con iluminación ambiental cálida durante el atardecer.
+                        </li>
+                    </ul>
+
+        </section>
+</main>
+
+<!-- columna derecha-->
+<aside>
+<!-- card guia -->
+<section class="card-custom">
+    <h2 class="card-title-custom">
+        <i class="bi bi-lightning"></i>
+        Guía de Escritura de Prompts
+    </h2>
+
+    <p class="card-text-custom mb-0">
+        Sigue estos consejos para crear prompts mas efectivos.
+    </p>
+</section>
+
+<!-- card consejo 1 -->
+<section class="card-custom card-orange">
+    <h3 class="card-title-custom">
+        <i class="bi bi-lightbulb"></i>
+        1. Sé Específico
+    </h3>
+
+    <p class="card-text-custom">
+        Incluye detalles sobre el estilo, ambiente y tema para mejores resultados.
+    </p>
+
+    <p class="card-text-custom mb-0">
+        Ejemplo: "Un atardecer sobre montañas con tonos naranja cálidos".
+    </p>
+</section>
+
+<!--card consejo 2  -->
+<section class="card-custom card-blue">
+    <h3 class="card-title-custom">
+        <i class="bi bi-check-circle"></i>
+        2. Usa Palabras Descriptivas
+    </h3>
+
+    <p class="card-text-custom">
+        Añade adjetivos y descriptores para mejorar la calidad de tu prompt.
+    </p>
+
+    <p class="card-text-custom mb-0">
+        Ejemplo: "Vibrante, minimalista, moderno, elegante, pacífico".
+    </p>
+</section>
+
+<!-- card consejo 3 -->
+<section class="card-custom card-green">
+    <h3 class="card-title-custom">
+        <i class="bi bi-book"></i>
+        3. Establece el Contexto
+    </h3>
+
+    <p class="card-text-custom">
+        Describe el entorno, hora del día o atmósfera que deseas.
+    </p>
+
+    <p class="card-text-custom mb-0">
+        Ejemplo: "En una acogedora cafetería durante la hora dorada".
+    </p>
+</section>
+
+<!-- card consejo 4-->
+<section class="card-custom card-yellow">
+    <h3 class="card-title-custom">
+        <i class="bi bi-exclamation-circle"></i>
+        4. Evita la Ambigüedad
+    </h3>
+
+    <p class="card-text-custom">
+        Sé claro sobre lo que quieres para evitar confusión en los resultados.
+    </p>
+
+    <p class="card-text-custom mb-0">
+        Ejemplo: "Retrato de cerca, no foto de cuerpo completo".
+    </p>
+</section>
+                
+
+                <!-- card consejos rapidos -->
+                <section class="card-custom">
+                    <h3 class="card-title-custom">
+                        <i class="bi bi-magic"></i>
+                        Consejos Rápidos
+                    </h3>
+
+                    <ul class="example-list">
+                        <li>Prompts más largos suelen dar mejores resultados.</li>
+                        <li>Incluye estilos artísticos o referencias.</li>
+                        <li>Especifica ángulos de cámara o perspectivas.</li>
+                        <li>Menciona condiciones de iluminación y ambiente.</li>
+                    </ul>
+                </section>
+
+            </aside>
+
+        </div>
+    </div>
+</div>
+
+<!-- confirmación -->
+
+<!-- solo aparece cuando el Controller manda un mensaje en ViewData["Mensaje"] -->
+@if (ViewData["Mensaje"] != null)
+{
+    <div class="modal fade show" tabindex="-1" style="display:block; background-color: rgba(172, 221, 237, 0.898);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-3 shadow">
+
+                <div class="modal-header">
+                   <i class="bi bi-check2-circle"></i>
+                    <h5 class="modal-title">   Prompt publicado</h5>
+                </div>
+
+                <div class="modal-body">
+                    <p class="mb-0">@ViewData["Mensaje"]</p>
+                </div>
+
+                <div class="modal-footer">
+                    <a asp-action="Create" class="btn btn-primary">
+                        Ok
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+<!-- javascript -->
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Se obtienen los elementos del formulario por su id
+            const titleInput = document.getElementById("Title");
+            const descriptionInput = document.getElementById("Description");
+            const promptInput = document.getElementById("Prompt");
+            const generateButton = document.getElementById("generateButton");
+            const clearButton = document.getElementById("clearButton");
+
+            // revisa si los tres campos tienen texto
+            // si falta alguno, el botón Publicar se queda desactivado.
+            function revisarFormulario() {
+                generateButton.disabled =
+                    titleInput.value.trim() === "" ||
+                    descriptionInput.value.trim() === "" ||
+                    promptInput.value.trim() === "";
+            }
+
+            // cada vez que el usuario escribe, se revisa el formulario
+            titleInput.addEventListener("input", revisarFormulario);
+            descriptionInput.addEventListener("input", revisarFormulario);
+            promptInput.addEventListener("input", revisarFormulario);
+
+            // limpia los campos cuando el usuario presiona el botón Limpiar
+            clearButton.addEventListener("click", function () {
+                titleInput.value = "";
+                descriptionInput.value = "";
+                promptInput.value = "";
+
+                revisarFormulario();
+            });
+
+            // revisión inicial al cargar la página
+            revisarFormulario();
+        });
+    </script>
+}

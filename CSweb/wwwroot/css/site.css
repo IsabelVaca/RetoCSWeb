@@ -19,6 +19,7 @@ html {
 
 body {
   margin-bottom: 60px;
+  color: #132f38;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -302,3 +303,194 @@ body {
 .save-btn.saved {
     color: #0d6efd;
 }
+
+
+/* fer */
+
+
+/* hace que la pantalla de crear ocupe al menos toda la altura visible */
+.create-page {
+    min-height: 100vh;
+}
+
+
+/* grid */
+
+
+/* organiza la página en una columna en pantallas pequeñas (*/
+.main-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+/* En pantallas grandes divide la página en dos columnas */
+@media (min-width: 992px) {
+    .main-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+
+/* cards */
+
+
+/* card principal "Crea tu Prompt" */
+.card-form {
+    background: #ffffff;
+    border: 1px solid #9dbdd1;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* cards guía, ejemplos y consejos */
+.card-custom {
+    background: #9ec1d8e2;
+    border: 1px solid #5f95b7;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 20px rgba(32, 103, 154, 0.397);
+}
+
+/* colores diferentes para  cards de la guía */
+.card-orange {
+    background: #fff3e6;
+    border-color: #f7aa63;
+}
+
+.card-blue {
+    background: #e6f6fc;
+    border-color: #009FDC;
+}
+
+.card-green {
+    background: #f1f8e8;
+    border-color: #c1da8a;
+}
+
+.card-yellow {
+    background: #fff8dc;
+    border-color: #fed042;
+}
+/* Efecto sencillo cuando pasas el mouse sobre una card */
+.card-form:hover,
+.card-custom:hover {
+    box-shadow: 0 10px 25px rgba(41, 101, 131, 0.468);
+}
+
+/* estilo para los títulos dentro de cards */
+.card-title-custom {
+    font-size: 16px;
+    font-weight: 600;
+    color: #123248;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 9px; /*que tan separado esta del icono */ 
+}
+
+/* estilo para los textos dentro de las cards */
+.card-text-custom {
+    font-size: 14px;
+    color: #123248;
+    margin-bottom: 8px;
+}
+
+
+/* formulario */
+
+
+/* estilo para los labels: Título, Descripción y Prompt */
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #012741;
+}
+
+/* estilo para inputs y textarea */
+.form-control-custom {
+    min-height: 48px;
+    border-radius: 12px;
+    border: 1px solid #274d64cf;
+    background: #ffffff;
+}
+
+/* estilo cuando el usuario da click en un input o textarea */
+.form-control-custom:focus {
+    border-color: #12779f;
+    box-shadow: 0 0 0 3px rgba(18, 66, 85, 0.15);
+}
+
+/* estilo específico para el textarea del prompt */
+textarea.form-control-custom {
+    min-height: 220px; /* aunque no tenga texto, se ve grande para que el usuario pueda escribir un prompt largo */
+    resize: none; /* no permite que el usuario cambie el tamaño del textarea */
+}
+
+
+/* botones */
+
+
+/* acomoda los botones en fila con espacio entre ellos */
+.button-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* botón para publicar */
+.btn-generate {
+    min-height: 48px;
+    border-radius: 12px;
+    border: none;
+    background: #0e536e;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0 24px;
+}
+
+
+
+/* estilo del botón publicar desactivado */
+.btn-generate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* botón  para limpiar */
+.btn-clear {
+    min-height: 48px;
+    border-radius: 12px;
+    border: 1px solid #9dbdd1;
+    background: #ffffff;
+    color: #6998b8;
+    padding: 0 24px;
+}
+
+/* Color del botón limpiar cuando pasas el mouse */
+.btn-clear:hover {
+    background: #eef6fa;
+    color: #012741;
+}
+
+
+/* lista de ejemplos */
+
+/* estilo general de la lista de prompts de ejemplo */
+.example-list {
+    padding-left: 19px;
+    margin-bottom: 0; /*quita el espacio extra de abajo */
+}
+
+/* estilo de cada elemento de la lista */
+.example-list li {
+    font-size: 14px;
+    color: #222222;
+    margin-bottom: 8px; /*espacio entre un ejemplo y otro */
+}
+
+
+
