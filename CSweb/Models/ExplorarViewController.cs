@@ -8,7 +8,7 @@ namespace CSweb.Models
         // lista de prompts que se desplegarán en la pantalla
         public List<PromptViewModel> Prompts { get; set; }
 
-        // lista de filtros: Tendencias, Recientes, Más Gustados, etc.
+        // lista de filtros: Recientes, Más Gustados, Más Guardados, etc.
         public List<string> Filters { get; set; }
 
         // guarda lo que el usuario escribió en la barra de búsqueda

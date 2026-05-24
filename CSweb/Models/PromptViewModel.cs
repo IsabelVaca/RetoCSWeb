@@ -33,6 +33,7 @@ namespace CSweb.Models
 
         public DateTime FechaPublicacion { get; set; } //este es el q se usa realmente para filtrar
 
+        // Si es true, Explorar puede mostrar el badge "Tendencia" en la tarjeta.
         public bool Trending { get; set; }
     }
 }

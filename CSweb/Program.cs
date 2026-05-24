@@ -1,8 +1,11 @@
+// Configuración en código; no se usa appsettings.json para datos de la app.
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
 builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession(options =>
