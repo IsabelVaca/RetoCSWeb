@@ -233,13 +233,6 @@ body {
     font-size: 12px;
 }
 
-.tendencia-badge {
-    background: linear-gradient(90deg, #F7AA63, #DC844E);
-    color: white;
-    font-size: 12px;
-    font-weight: 500;
-}
-
 .categoria-badge {
     background-color: rgba(16, 75, 112, 0.1);
     color: #104B70;
@@ -493,4 +486,139 @@ textarea.form-control-custom {
 }
 
 
+/* =============================================================================
+   perfil — estilos de la página Perfil (Home/Perfil).
+   site.css ya se carga en _Layout; escribe aquí las reglas que uses.
+   ============================================================================= */
 
+/* Tipografía más compacta que Bootstrap display-4 / fs-5 */
+.perfil-page .perfil-nombre {
+    font-size: 1.65rem; /* ~26px: cabecera clara pero no enorme */
+    line-height: 1.25;
+    margin-bottom: 0.35rem;
+}
+
+.perfil-page .perfil-handle {
+    font-size: 1rem; /* ~16px */
+    line-height: 1.4;
+}
+
+.perfil-page .perfil-bio {
+    font-size: 1rem;
+    line-height: 1.55;
+    max-width: 42rem;
+}
+
+/* Correo bajo la bio: mismo tono que el handle, enlace discreto */
+.perfil-page .perfil-correo {
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+.perfil-page .perfil-correo a {
+    color: #0e536e;
+    font-weight: 500;
+}
+
+.perfil-page .perfil-correo a:hover {
+    color: #012741;
+    text-decoration: underline !important;
+}
+
+.perfil-page .perfil-stats {
+    font-size: 0.95rem;
+    line-height: 1.45;
+}
+
+/* Barra de pestañas del perfil: reutiliza .toolbar-icon / .active del Layout */
+.perfil-page .perfil-pubs-nav {
+    max-width: 100%;
+}
+
+/* Con texto en cada pestaña, no forzar el ancho mínimo del icono del header */
+.perfil-page .perfil-pubs-nav .toolbar-icon {
+    min-width: auto;
+}
+
+/* Etiqueta al lado del icono en la barra del perfil */
+.perfil-page .perfil-tab-text {
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Pestaña activa del perfil: gana a .navbar-nav .nav-link.active de Bootstrap */
+.perfil-page .perfil-pubs-nav .nav-link.toolbar-icon.active {
+    background-color: #104b70;
+    color: #fff !important;
+    box-shadow: 0 0.4rem 0.8rem rgba(16, 75, 112, 0.25);
+}
+
+.perfil-page .perfil-pubs-nav .nav-link.toolbar-icon.active i {
+    color: inherit;
+}
+
+/* Área de contenido bajo la barra (tarjeta ligera) */
+.perfil-page .perfil-tab-panel {
+    border-color: rgba(16, 75, 112, 0.12) !important;
+    box-shadow: 0 4px 14px rgba(16, 75, 112, 0.07);
+}
+
+/* Tarjetas de prompts en el perfil: un poco más compactas que Explorar */
+.perfil-page .perfil-mock-card .card-body {
+    padding: 0.85rem 1rem;
+}
+
+/* Lista de actividad (timeline simple) */
+.perfil-page .perfil-actividad-list .perfil-actividad-item:last-child {
+    border-bottom: none !important;
+}
+
+.perfil-page .perfil-actividad-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, #104b70, #0e536e);
+}
+
+.perfil-page .perfil-actividad-cita {
+    border-color: #9dbdd1 !important;
+}
+
+/* Botón para abrir el formulario de editar perfil */
+.perfil-page .perfil-btn-editar {
+    background-color: #104b70;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.perfil-page .perfil-btn-editar:hover {
+    background-color: #0e536e;
+    color: #fff;
+}
+
+/* Formulario ?tab=editar */
+.perfil-page .perfil-editar-form .form-control:focus {
+    border-color: #104b70;
+    box-shadow: 0 0 0 0.2rem rgba(16, 75, 112, 0.15);
+}
+
+.perfil-page .perfil-btn-guardar {
+    background-color: #104b70;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+}
+
+.perfil-page .perfil-btn-guardar:hover {
+    background-color: #012741;
+    color: #fff;
+}
+
+/* Foto de perfil y vista previa en editar */
+.perfil-page .perfil-foto-preview {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+}
