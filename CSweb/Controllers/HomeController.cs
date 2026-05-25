@@ -367,7 +367,7 @@ public class HomeController : Controller
         return View(prompt);
     }
 
-    // --- Perfil---
+    // ========== PERFIL (API Flask :8001) ==========
     private static readonly (string Id, string Icon, string Label)[] PerfilTabsNav =
     {
         ("publicados", "bi-grid-3x3-gap", "Publicados"),
@@ -376,17 +376,18 @@ public class HomeController : Controller
         ("actividad", "bi-lightning-charge", "Actividad"),
     };
 
-    // GET ?tab=publicados|guardados|likeados|actividad|editar
+    // Ver perfil (GET)
     public async Task<IActionResult> Perfil()
     {
         var id = IdSesion();
-        var tab = TabPerfil(Request.Query["tab"].FirstOrDefault());
-        var vm = await CargarPerfilAsync(id, tab == "editar" ? "publicados" : tab);
-        PrepararViewBag(vm, tab == "editar" ? "editar" : tab);
+        var tab = Tab(Request.Query["tab"].FirstOrDefault());
+        var apiTab = tab == "editar" ? "publicados" : tab;
+        var vm = await CargarDesdeApi(id, apiTab);
+        PrepararVista(vm, tab == "editar" ? "editar" : tab);
         return View(vm);
     }
 
-    // POST: valida, foto opcional, PUT API
+    // Guardar cambios (POST → API)
     [HttpPost]
     public async Task<IActionResult> EditarPerfil(PerfilEditarViewModel model)
     {
@@ -398,20 +399,20 @@ public class HomeController : Controller
 
         if (model.FotoPerfil is { Length: > 0 })
         {
-            model.RutaFotoPerfil = await GuardarFotoAsync(model.FotoPerfil, id);
+            model.RutaFotoPerfil = await GuardarFotoEnDisco(model.FotoPerfil, id);
             if (model.RutaFotoPerfil == null)
                 ModelState.AddModelError(nameof(model.FotoPerfil), "Extensiones NO permitidas. Usa .jpg, .jpeg, .png, .gif.");
-            else if (!await _perfilApi.ActualizarFotoAsync(id, RutaApi(model.RutaFotoPerfil)))
+            else if (!await _perfilApi.ActualizarFotoAsync(id, RutaParaApi(model.RutaFotoPerfil)))
                 ModelState.AddModelError(string.Empty, "No se pudo actualizar la foto en la API.");
         }
 
         if (!ModelState.IsValid)
-            return await VistaEditarConErrores(id, model);
+            return await VistaEditar(id, model);
 
         if (!await _perfilApi.ActualizarPerfilAsync(id, model.Nombre, model.UserName, model.Bio ?? ""))
         {
             ModelState.AddModelError(string.Empty, "No se pudo actualizar el perfil en la API.");
-            return await VistaEditarConErrores(id, model);
+            return await VistaEditar(id, model);
         }
 
         TempData["PerfilMensaje"] = "Perfil actualizado correctamente.";
@@ -421,10 +422,11 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult PublicarComentarioPerfil(int promptId, string comentario, string? returnTab)
     {
-        TempData["PerfilMensaje"] = ValidarComentario(comentario);
+        TempData["PerfilMensaje"] = MensajeComentario(comentario);
         return RedirectToAction(nameof(Perfil), new { tab = string.IsNullOrWhiteSpace(returnTab) ? "publicados" : returnTab });
     }
 
+    // --- Sesión y pestaña ---
     private int IdSesion()
     {
         if (HttpContext.Session.GetInt32("UsuarioId") is int id) return id;
@@ -432,21 +434,22 @@ public class HomeController : Controller
         return 1;
     }
 
-    private static string TabPerfil(string? tab) =>
-        string.IsNullOrWhiteSpace(tab) || tab.Equals("publicaciones", StringComparison.OrdinalIgnoreCase) ? "publicados" : tab;
+    private static string Tab(string? t) =>
+        string.IsNullOrWhiteSpace(t) || t.Equals("publicaciones", StringComparison.OrdinalIgnoreCase) ? "publicados" : t;
 
-    private async Task<PerfilViewModel> CargarPerfilAsync(int id, string tab)
+    // --- Llamada API y ViewBag ---
+    private async Task<PerfilViewModel> CargarDesdeApi(int id, string tab)
     {
-        var (cab, items) = await _perfilApi.ObtenerPerfilAsync(id, tab, id);
+        var (cab, lista) = await _perfilApi.ObtenerPerfilAsync(id, tab, id);
         if (cab.Count == 0)
         {
             TempData["PerfilError"] = "No se pudieron cargar los datos del perfil. ¿Está la API en http://127.0.0.1:8001?";
             return new PerfilViewModel();
         }
-        return MapearPerfil(cab[0], items, tab);
+        return AModelo(cab[0], lista, tab);
     }
 
-    private void PrepararViewBag(PerfilViewModel p, string tab)
+    private void PrepararVista(PerfilViewModel p, string tab)
     {
         ViewBag.Tab = tab;
         ViewBag.EnEditar = tab == "editar";
@@ -456,124 +459,115 @@ public class HomeController : Controller
         ViewBag.TabsNav = PerfilTabsNav;
         ViewBag.Prompts = tab == "guardados" ? p.Guardados : tab == "likeados" ? p.Likeados : p.Publicados;
 
-        var editar = (ViewBag.PerfilEditar as PerfilEditarViewModel) ?? new PerfilEditarViewModel
-        {
-            Nombre = p.Nombre, UserName = p.UserName, Bio = p.Bio, RutaFotoPerfil = p.ImagenPerfil
-        };
-        ViewBag.PerfilEditar = editar;
+        var ed = new PerfilEditarViewModel { Nombre = p.Nombre, UserName = p.UserName, Bio = p.Bio, RutaFotoPerfil = p.ImagenPerfil };
+        ViewBag.PerfilEditar = ed;
         var id = IdSesion();
-        ViewBag.UrlFotoCabecera = UrlFoto(p.ImagenPerfil, id);
-        ViewBag.UrlFotoEditar = UrlFoto(editar.RutaFotoPerfil, id);
+        ViewBag.UrlFotoCabecera = RutaImagen(p.ImagenPerfil, id);
+        ViewBag.UrlFotoEditar = RutaImagen(ed.RutaFotoPerfil, id);
     }
 
-    private async Task<IActionResult> VistaEditarConErrores(int id, PerfilEditarViewModel m)
+    private async Task<IActionResult> VistaEditar(int id, PerfilEditarViewModel m)
     {
-        var p = await CargarPerfilAsync(id, "publicados");
+        var p = await CargarDesdeApi(id, "publicados");
         p.Nombre = m.Nombre;
         p.UserName = m.UserName;
         p.Bio = m.Bio ?? "";
         if (!string.IsNullOrWhiteSpace(m.RutaFotoPerfil)) p.ImagenPerfil = m.RutaFotoPerfil.Trim();
         ViewBag.PerfilEditar = m;
-        PrepararViewBag(p, "editar");
+        PrepararVista(p, "editar");
         return View("Perfil", p);
     }
 
-    private static string RutaApi(string ruta) =>
+    private static string RutaParaApi(string ruta) =>
         (ruta.Trim().StartsWith('/') ? ruta.Trim() : "/" + ruta.Trim())
             .Replace("/Imagenes/", "/imagenes/", StringComparison.OrdinalIgnoreCase);
 
-    private static PerfilViewModel MapearPerfil(Dictionary<string, object> cab, List<Dictionary<string, object>> items, string tab)
+    // --- JSON de la API → Models ---
+    private static PerfilViewModel AModelo(Dictionary<string, object> cab, List<Dictionary<string, object>> lista, string tab)
     {
         var p = new PerfilViewModel
         {
-            Nombre = DStr(cab, "nombre"),
-            UserName = DStr(cab, "userName"),
-            Bio = DStr(cab, "bio"),
-            ImagenPerfil = DStrN(cab, "imagenPerfil"),
-            Correo = DStr(cab, "correo"),
-            NumeroPublicaciones = DInt(cab, "numeroPublicaciones"),
+            Nombre = S(cab, "nombre"),
+            UserName = S(cab, "userName"),
+            Bio = S(cab, "bio"),
+            ImagenPerfil = SNull(cab, "imagenPerfil"),
+            Correo = S(cab, "correo"),
+            NumeroPublicaciones = N(cab, "numeroPublicaciones"),
         };
-        if (tab == "actividad") p.Actividad = items.Select(DActividad).ToList();
-        else if (tab == "guardados") p.Guardados = items.Select(DPrompt).ToList();
-        else if (tab == "likeados") p.Likeados = items.Select(DPrompt).ToList();
-        else p.Publicados = items.Select(DPrompt).ToList();
+        if (tab == "actividad") p.Actividad = lista.Select(Actividad).ToList();
+        else if (tab == "guardados") p.Guardados = lista.Select(APrompt).ToList();
+        else if (tab == "likeados") p.Likeados = lista.Select(APrompt).ToList();
+        else p.Publicados = lista.Select(APrompt).ToList();
         return p;
     }
 
-    private static PromptViewModel DPrompt(Dictionary<string, object> d) => new()
+    private static PromptViewModel APrompt(Dictionary<string, object> d) => new()
     {
-        Id = DInt(d, "id"), IdUsuario = DInt(d, "idUsuario"),
-        Title = DStr(d, "title"), Prompt = DStr(d, "prompt"),
-        AuthorName = DStr(d, "authorName"), Username = DStr(d, "username"),
-        InitialsProfile = DStr(d, "initialsProfile"), CircleColor = DStr(d, "circleColor", "#104B70"),
-        Category = DStr(d, "category"), Likes = DInt(d, "likes"), Comments = DInt(d, "comments"),
-        Saves = DInt(d, "saves"), CreatedAt = DStr(d, "fechaPublicacion"), Trending = DInt(d, "trending") == 1,
+        Id = N(d, "id"), IdUsuario = N(d, "idUsuario"), Title = S(d, "title"), Prompt = S(d, "prompt"),
+        AuthorName = S(d, "authorName"), Username = S(d, "username"), InitialsProfile = S(d, "initialsProfile"),
+        CircleColor = S(d, "circleColor", "#104B70"), Category = S(d, "category"),
+        Likes = N(d, "likes"), Comments = N(d, "comments"), Saves = N(d, "saves"),
+        CreatedAt = S(d, "fechaPublicacion"), Trending = N(d, "trending") == 1,
     };
 
-    private static PerfilActividadItemViewModel DActividad(Dictionary<string, object> d) => new()
+    private static PerfilActividadItemViewModel Actividad(Dictionary<string, object> d) => new()
     {
-        Tipo = DStr(d, "tipo"), ActorNombre = DStr(d, "actorNombre"), ActorUserName = DStr(d, "actorUserName"),
-        TituloPrompt = DStr(d, "tituloPrompt"), Momento = DStr(d, "fecha"), ExtractoComentario = DStrN(d, "extractoComentario"),
+        Tipo = S(d, "tipo"), ActorNombre = S(d, "actorNombre"), ActorUserName = S(d, "actorUserName"),
+        TituloPrompt = S(d, "tituloPrompt"), Momento = S(d, "fecha"), ExtractoComentario = SNull(d, "extractoComentario"),
     };
 
-    private static string DStr(Dictionary<string, object> d, string k, string def = "") =>
+    private static string S(Dictionary<string, object> d, string k, string def = "") =>
         d.TryGetValue(k, out var v) ? v?.ToString() ?? def : def;
 
-    private static string? DStrN(Dictionary<string, object> d, string k) =>
+    private static string? SNull(Dictionary<string, object> d, string k) =>
         d.TryGetValue(k, out var v) && v != null && v.ToString() != "" ? v.ToString() : null;
 
-    private static int DInt(Dictionary<string, object> d, string k) =>
+    private static int N(Dictionary<string, object> d, string k) =>
         d.TryGetValue(k, out var v) ? v switch
         {
             int i => i, long l => (int)l, double x => (int)x,
             _ => int.TryParse(v.ToString(), out var n) ? n : 0
         } : 0;
 
-    // Foto: ruta API → archivo en wwwroot o última subida
-    private string UrlFoto(string? ruta, int id)
+    // --- Foto en disco ---
+    private string RutaImagen(string? rutaApi, int id)
     {
-        const string def = "/Imagenes/fotosperfil/trabajador.jpg";
+        const string porDefecto = "/Imagenes/fotosperfil/trabajador.jpg";
         string? rel = null;
-        if (!string.IsNullOrWhiteSpace(ruta))
+        if (!string.IsNullOrWhiteSpace(rutaApi))
         {
-            rel = ruta.Trim().Replace("/imagenes/", "/Imagenes/", StringComparison.OrdinalIgnoreCase);
+            rel = rutaApi.Trim().Replace("/imagenes/", "/Imagenes/", StringComparison.OrdinalIgnoreCase);
             if (!rel.StartsWith('/')) rel = "/" + rel;
-            if (!System.IO.File.Exists(Wwwroot(rel))) rel = null;
+            if (!System.IO.File.Exists(Path.Combine(_env.WebRootPath, rel.TrimStart('/').Replace('/', Path.DirectorySeparatorChar))))
+                rel = null;
         }
-        if (rel == null)
-        {
-            var dir = Path.Combine(_env.WebRootPath, "Imagenes", "fotosperfil");
-            var f = Directory.Exists(dir)
-                ? Directory.GetFiles(dir, $"*FotoUsuario{id}*").OrderByDescending(System.IO.File.GetLastWriteTimeUtc).FirstOrDefault()
-                : null;
-            rel = f != null ? $"/Imagenes/fotosperfil/{Path.GetFileName(f)}" : def;
-        }
+        if (rel != null) return Url.Content("~" + rel)!;
+        var dir = Path.Combine(_env.WebRootPath, "Imagenes", "fotosperfil");
+        if (!Directory.Exists(dir)) return Url.Content("~" + porDefecto)!;
+        var ultima = Directory.GetFiles(dir, $"*FotoUsuario{id}*").OrderByDescending(System.IO.File.GetLastWriteTimeUtc).FirstOrDefault();
+        rel = ultima != null ? $"/Imagenes/fotosperfil/{Path.GetFileName(ultima)}" : porDefecto;
         return Url.Content("~" + rel)!;
     }
 
-    private string Wwwroot(string rel) =>
-        Path.Combine(_env.WebRootPath, rel.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-
-    private static string ValidarComentario(string t)
+    private static string MensajeComentario(string t)
     {
         if (string.IsNullOrWhiteSpace(t)) return "Escribe un comentario antes de publicar.";
-        var malas = new[] { "palabra1", "palabra2", "palabra3", "palabra4", "palabra5",
-            "palabra6", "palabra7", "palabra8", "palabra9", "palabra10" };
+        string[] malas = ["palabra1", "palabra2", "palabra3", "palabra4", "palabra5", "palabra6", "palabra7", "palabra8", "palabra9", "palabra10"];
         return malas.Any(p => t.Contains(p, StringComparison.OrdinalIgnoreCase))
             ? "Tu comentario contiene palabras no permitidas. Por favor, sé respetuoso."
             : "¡Comentario publicado con éxito!";
     }
 
-    private async Task<string?> GuardarFotoAsync(IFormFile foto, int id)
+    private async Task<string?> GuardarFotoEnDisco(IFormFile foto, int id)
     {
         var ext = Path.GetExtension(foto.FileName).ToLowerInvariant();
-        if (!new[] { ".jpg", ".jpeg", ".png", ".gif" }.Contains(ext)) return null;
+        if (!".jpg,.jpeg,.png,.gif".Split(',').Contains(ext)) return null;
         var dir = Path.Combine(_env.WebRootPath, "Imagenes", "fotosperfil");
         Directory.CreateDirectory(dir);
-        var name = $"{Guid.NewGuid()}_FotoUsuario{id}{ext}";
-        await using var s = new FileStream(Path.Combine(dir, name), FileMode.Create);
-        await foto.CopyToAsync(s);
-        return $"/Imagenes/fotosperfil/{name}";
+        var nombre = $"{Guid.NewGuid()}_FotoUsuario{id}{ext}";
+        await using var stream = new FileStream(Path.Combine(dir, nombre), FileMode.Create);
+        await foto.CopyToAsync(stream);
+        return $"/Imagenes/fotosperfil/{nombre}";
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
