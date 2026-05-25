@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using CSweb.Models;
+using CSweb.Services;
 
 namespace CSweb.Controllers;
 
@@ -10,20 +10,16 @@ public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly IWebHostEnvironment _env;
+    private readonly IPerfilApiService _perfilApi;
 
-    // Límites de editar perfil (definidos aquí, no en appsettings.json).
-    private static readonly PerfilEdicionOpciones PerfilLimites = new();
-
-    // Foto de perfil por defecto en wwwroot (Imagenes/perfil/perfil.jpg).
-    private const string FotoPerfilPorDefecto = "/Imagenes/perfil/perfil.jpg";
-
-    // Usuario: solo letras, números y guion bajo.
-    private static readonly Regex RegexUserNamePerfil = new(@"^[a-zA-Z0-9_]+$", RegexOptions.Compiled);
-
-    public HomeController(ILogger<HomeController> logger, IWebHostEnvironment env)
+    public HomeController(
+        ILogger<HomeController> logger,
+        IWebHostEnvironment env,
+        IPerfilApiService perfilApi)
     {
         _logger = logger;
         _env = env;
+        _perfilApi = perfilApi;
     }
 
     public IActionResult Index()
@@ -46,8 +42,8 @@ public class HomeController : Controller
         //asigna id
         if (usuarioId == null)
         {
-            HttpContext.Session.SetInt32("UsuarioId", 2);
-            usuarioId = 2;
+            HttpContext.Session.SetInt32("UsuarioId", 1);
+            usuarioId = 1;
         }
 
         //lista de ranking
@@ -301,8 +297,6 @@ public class HomeController : Controller
             return View(datos);
         }
 
-        // Este método recibe el comentario desde JavaScript usando fetch.
-        // Ya NO redirige a Explorar porque queremos quedarnos en la misma pantalla.
         [HttpPost]
         public IActionResult PublicarComentario(int promptId, string comentario)
         {
@@ -371,12 +365,9 @@ public class HomeController : Controller
         ViewData["Mensaje"] = "Se guardó correctamente tu prompt";
 
         return View(prompt);
-}
+    }
 
-
-    // Perfil: demo en controlador. Al conectar API, sustituir sesión + RellenarPerfilConEjemploDatos por llamadas HTTP.
-
-    // Pestañas del perfil (id, icono, etiqueta) para la barra de navegación.
+    // --- Perfil---
     private static readonly (string Id, string Icon, string Label)[] PerfilTabsNav =
     {
         ("publicados", "bi-grid-3x3-gap", "Publicados"),
@@ -385,50 +376,44 @@ public class HomeController : Controller
         ("actividad", "bi-lightning-charge", "Actividad"),
     };
 
-    public IActionResult Perfil()
+    // GET ?tab=publicados|guardados|likeados|actividad|editar
+    public async Task<IActionResult> Perfil()
     {
-        var perfil = ConstruirPerfilCompleto();
-        PrepararViewBagPerfil(perfil);
-        return View(perfil);
+        var id = IdSesion();
+        var tab = TabPerfil(Request.Query["tab"].FirstOrDefault());
+        var vm = await CargarPerfilAsync(id, tab == "editar" ? "publicados" : tab);
+        PrepararViewBag(vm, tab == "editar" ? "editar" : tab);
+        return View(vm);
     }
 
+    // POST: valida, foto opcional, PUT API
     [HttpPost]
     public async Task<IActionResult> EditarPerfil(PerfilEditarViewModel model)
     {
-        var limites = PerfilLimites;
+        var id = IdSesion();
+        if (string.IsNullOrWhiteSpace(model.Nombre))
+            ModelState.AddModelError(nameof(model.Nombre), "El nombre es obligatorio.");
+        if (string.IsNullOrWhiteSpace(model.UserName))
+            ModelState.AddModelError(nameof(model.UserName), "El usuario es obligatorio.");
 
-        // Validación según límites
-        ValidarPerfilEditar(model, ModelState);
-
-        // Id de sesión para el nombre único del archivo
-        var idUsuario = HttpContext.Session.GetInt32("UsuarioId") ?? 2;
-
-        if (model.FotoPerfil != null && model.FotoPerfil.Length > 0)
+        if (model.FotoPerfil is { Length: > 0 })
         {
-            // Demo: disco local. API: subir archivo y usar URL devuelta.
-            var rutaNueva = await GuardarFotoPerfilAsync(model.FotoPerfil, idUsuario);
-            if (rutaNueva == null)
-            {
-                var extTexto = string.Join(", ", limites.ExtensionesFotoPermitidas);
-                ModelState.AddModelError(nameof(model.FotoPerfil), $"Extensiones NO permitidas. Usa {extTexto}.");
-            }
-            else
-            {
-                model.RutaFotoPerfil = rutaNueva;
-            }
+            model.RutaFotoPerfil = await GuardarFotoAsync(model.FotoPerfil, id);
+            if (model.RutaFotoPerfil == null)
+                ModelState.AddModelError(nameof(model.FotoPerfil), "Extensiones NO permitidas. Usa .jpg, .jpeg, .png, .gif.");
+            else if (!await _perfilApi.ActualizarFotoAsync(id, RutaApi(model.RutaFotoPerfil)))
+                ModelState.AddModelError(string.Empty, "No se pudo actualizar la foto en la API.");
         }
 
         if (!ModelState.IsValid)
+            return await VistaEditarConErrores(id, model);
+
+        if (!await _perfilApi.ActualizarPerfilAsync(id, model.Nombre, model.UserName, model.Bio ?? ""))
         {
-            var perfil = ConstruirPerfilCompleto();
-            AplicarCabeceraDesdeFormulario(perfil, model);
-            ViewBag.PerfilEditar = model;
-            PrepararViewBagPerfil(perfil, "editar");
-            return View("Perfil", perfil);
+            ModelState.AddModelError(string.Empty, "No se pudo actualizar el perfil en la API.");
+            return await VistaEditarConErrores(id, model);
         }
 
-        // Demo: sesión. API: PUT/PATCH perfil del usuario.
-        GuardarCabeceraPerfilEnSesion(model);
         TempData["PerfilMensaje"] = "Perfil actualizado correctamente.";
         return RedirectToAction(nameof(Perfil));
     }
@@ -436,336 +421,159 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult PublicarComentarioPerfil(int promptId, string comentario, string? returnTab)
     {
-        var mensaje = ValidarTextoComentarioPerfil(comentario);
-        TempData["PerfilMensaje"] = mensaje;
-        var tab = string.IsNullOrWhiteSpace(returnTab) ? "publicados" : returnTab;
-        return RedirectToAction(nameof(Perfil), new { tab });
+        TempData["PerfilMensaje"] = ValidarComentario(comentario);
+        return RedirectToAction(nameof(Perfil), new { tab = string.IsNullOrWhiteSpace(returnTab) ? "publicados" : returnTab });
     }
 
-    // Rellena ViewBag para Perfil.cshtml (pestaña, listas, formulario editar, URLs de foto).
-    private void PrepararViewBagPerfil(PerfilViewModel perfil, string? tabForzado = null)
+    private int IdSesion()
     {
-        var tabRaw = tabForzado
-            ?? Request.Query["tab"].FirstOrDefault()
-            ?? "publicados";
-        var tab = tabRaw.Equals("publicaciones", StringComparison.OrdinalIgnoreCase) ? "publicados" : tabRaw;
+        if (HttpContext.Session.GetInt32("UsuarioId") is int id) return id;
+        HttpContext.Session.SetInt32("UsuarioId", 1);
+        return 1;
+    }
 
-        ViewBag.Tab = tab;
-        ViewBag.EnEditar = tab.Equals("editar", StringComparison.OrdinalIgnoreCase);
-        ViewBag.EnGuardados = tab.Equals("guardados", StringComparison.OrdinalIgnoreCase);
-        ViewBag.EnLikeados = tab.Equals("likeados", StringComparison.OrdinalIgnoreCase);
-        ViewBag.EnActividad = tab.Equals("actividad", StringComparison.OrdinalIgnoreCase);
-        ViewBag.TabsNav = PerfilTabsNav;
-        ViewBag.Prompts = (bool)ViewBag.EnGuardados
-            ? perfil.Guardados
-            : (bool)ViewBag.EnLikeados
-                ? perfil.Likeados
-                : perfil.Publicados;
+    private static string TabPerfil(string? tab) =>
+        string.IsNullOrWhiteSpace(tab) || tab.Equals("publicaciones", StringComparison.OrdinalIgnoreCase) ? "publicados" : tab;
 
-        var editar = ViewBag.PerfilEditar as PerfilEditarViewModel ?? new PerfilEditarViewModel
+    private async Task<PerfilViewModel> CargarPerfilAsync(int id, string tab)
+    {
+        var (cab, items) = await _perfilApi.ObtenerPerfilAsync(id, tab, id);
+        if (cab.Count == 0)
         {
-            Nombre = perfil.Nombre,
-            UserName = perfil.UserName,
-            Bio = perfil.Bio,
-            RutaFotoPerfil = perfil.ImagenPerfil,
+            TempData["PerfilError"] = "No se pudieron cargar los datos del perfil. ¿Está la API en http://127.0.0.1:8001?";
+            return new PerfilViewModel();
+        }
+        return MapearPerfil(cab[0], items, tab);
+    }
+
+    private void PrepararViewBag(PerfilViewModel p, string tab)
+    {
+        ViewBag.Tab = tab;
+        ViewBag.EnEditar = tab == "editar";
+        ViewBag.EnGuardados = tab == "guardados";
+        ViewBag.EnLikeados = tab == "likeados";
+        ViewBag.EnActividad = tab == "actividad";
+        ViewBag.TabsNav = PerfilTabsNav;
+        ViewBag.Prompts = tab == "guardados" ? p.Guardados : tab == "likeados" ? p.Likeados : p.Publicados;
+
+        var editar = (ViewBag.PerfilEditar as PerfilEditarViewModel) ?? new PerfilEditarViewModel
+        {
+            Nombre = p.Nombre, UserName = p.UserName, Bio = p.Bio, RutaFotoPerfil = p.ImagenPerfil
         };
         ViewBag.PerfilEditar = editar;
-        ViewBag.PerfilLimites = PerfilLimites;
-        ViewBag.UrlFotoCabecera = UrlFotoPerfil(perfil.ImagenPerfil);
-        ViewBag.UrlFotoEditar = UrlFotoPerfil(editar.RutaFotoPerfil);
+        var id = IdSesion();
+        ViewBag.UrlFotoCabecera = UrlFoto(p.ImagenPerfil, id);
+        ViewBag.UrlFotoEditar = UrlFoto(editar.RutaFotoPerfil, id);
     }
 
-    // Convierte ruta de imagen de perfil a URL para la etiqueta img.
-    private string UrlFotoPerfil(string? ruta)
+    private async Task<IActionResult> VistaEditarConErrores(int id, PerfilEditarViewModel m)
     {
-        if (string.IsNullOrWhiteSpace(ruta))
-            return Url.Content("~/Imagenes/perfil/perfil.jpg")!;
-        if (ruta.StartsWith("http", StringComparison.OrdinalIgnoreCase))
-            return ruta;
-        return Url.Content("~" + (ruta.StartsWith("/") ? ruta : "/" + ruta))!;
+        var p = await CargarPerfilAsync(id, "publicados");
+        p.Nombre = m.Nombre;
+        p.UserName = m.UserName;
+        p.Bio = m.Bio ?? "";
+        if (!string.IsNullOrWhiteSpace(m.RutaFotoPerfil)) p.ImagenPerfil = m.RutaFotoPerfil.Trim();
+        ViewBag.PerfilEditar = m;
+        PrepararViewBag(p, "editar");
+        return View("Perfil", p);
     }
 
-    // Valores por defecto de la cabecera cuando aún no hay nada en sesión.
-    private static PerfilViewModel CrearPerfilPorDefecto()
+    private static string RutaApi(string ruta) =>
+        (ruta.Trim().StartsWith('/') ? ruta.Trim() : "/" + ruta.Trim())
+            .Replace("/Imagenes/", "/imagenes/", StringComparison.OrdinalIgnoreCase);
+
+    private static PerfilViewModel MapearPerfil(Dictionary<string, object> cab, List<Dictionary<string, object>> items, string tab)
     {
-        return new PerfilViewModel
+        var p = new PerfilViewModel
         {
-            ImagenPerfil = FotoPerfilPorDefecto,
-            Nombre = "Sofía Castillo",
-            UserName = "sofiac_prompts",
-            Bio = "Diseñadora de prompts para equipos de producto y marketing.",
-            Correo = "sofia.castillo@ejemplo.com",
+            Nombre = DStr(cab, "nombre"),
+            UserName = DStr(cab, "userName"),
+            Bio = DStr(cab, "bio"),
+            ImagenPerfil = DStrN(cab, "imagenPerfil"),
+            Correo = DStr(cab, "correo"),
+            NumeroPublicaciones = DInt(cab, "numeroPublicaciones"),
         };
+        if (tab == "actividad") p.Actividad = items.Select(DActividad).ToList();
+        else if (tab == "guardados") p.Guardados = items.Select(DPrompt).ToList();
+        else if (tab == "likeados") p.Likeados = items.Select(DPrompt).ToList();
+        else p.Publicados = items.Select(DPrompt).ToList();
+        return p;
     }
 
-    // Arma el perfil: cabecera (demo/sesión) + listas demo. API: un GET que devuelva PerfilViewModel.
-    private PerfilViewModel ConstruirPerfilCompleto()
+    private static PromptViewModel DPrompt(Dictionary<string, object> d) => new()
     {
-        var perfil = CrearPerfilPorDefecto();
-        AplicarCabeceraPerfilDesdeSesion(perfil);
-        RellenarPerfilConEjemploDatos(perfil);
-        return perfil;
-    }
+        Id = DInt(d, "id"), IdUsuario = DInt(d, "idUsuario"),
+        Title = DStr(d, "title"), Prompt = DStr(d, "prompt"),
+        AuthorName = DStr(d, "authorName"), Username = DStr(d, "username"),
+        InitialsProfile = DStr(d, "initialsProfile"), CircleColor = DStr(d, "circleColor", "#104B70"),
+        Category = DStr(d, "category"), Likes = DInt(d, "likes"), Comments = DInt(d, "comments"),
+        Saves = DInt(d, "saves"), CreatedAt = DStr(d, "fechaPublicacion"), Trending = DInt(d, "trending") == 1,
+    };
 
-    // Demo: lee cabecera guardada en sesión tras editar. API: datos del GET perfil.
-    private void AplicarCabeceraPerfilDesdeSesion(PerfilViewModel p)
+    private static PerfilActividadItemViewModel DActividad(Dictionary<string, object> d) => new()
     {
-        var nombre = HttpContext.Session.GetString("Perfil_Nombre");
-        if (!string.IsNullOrWhiteSpace(nombre))
-            p.Nombre = nombre;
+        Tipo = DStr(d, "tipo"), ActorNombre = DStr(d, "actorNombre"), ActorUserName = DStr(d, "actorUserName"),
+        TituloPrompt = DStr(d, "tituloPrompt"), Momento = DStr(d, "fecha"), ExtractoComentario = DStrN(d, "extractoComentario"),
+    };
 
-        var user = HttpContext.Session.GetString("Perfil_UserName");
-        if (!string.IsNullOrWhiteSpace(user))
-            p.UserName = user;
+    private static string DStr(Dictionary<string, object> d, string k, string def = "") =>
+        d.TryGetValue(k, out var v) ? v?.ToString() ?? def : def;
 
-        var bio = HttpContext.Session.GetString("Perfil_Bio");
-        if (bio != null)
-            p.Bio = bio;
+    private static string? DStrN(Dictionary<string, object> d, string k) =>
+        d.TryGetValue(k, out var v) && v != null && v.ToString() != "" ? v.ToString() : null;
 
-        var imagen = HttpContext.Session.GetString("Perfil_ImagenPerfil");
-        if (!string.IsNullOrWhiteSpace(imagen))
-            p.ImagenPerfil = imagen;
-        else if (HttpContext.Session.Keys.Contains("Perfil_ImagenPerfil"))
-            p.ImagenPerfil = FotoPerfilPorDefecto;
-    }
-
-    // Demo: persiste cabecera en sesión. API: enviar modelo al endpoint de actualización.
-    private void GuardarCabeceraPerfilEnSesion(PerfilEditarViewModel m)
-    {
-        HttpContext.Session.SetString("Perfil_Nombre", m.Nombre.Trim());
-        HttpContext.Session.SetString("Perfil_UserName", m.UserName.Trim());
-        HttpContext.Session.SetString("Perfil_Bio", m.Bio?.Trim() ?? string.Empty);
-
-        if (string.IsNullOrWhiteSpace(m.RutaFotoPerfil))
-            HttpContext.Session.Remove("Perfil_ImagenPerfil");
-        else
-            HttpContext.Session.SetString("Perfil_ImagenPerfil", m.RutaFotoPerfil.Trim());
-    }
-
-    // Tras error de validación: muestra en cabecera lo que el usuario escribió (sin llamar API).
-    private static void AplicarCabeceraDesdeFormulario(PerfilViewModel p, PerfilEditarViewModel m)
-    {
-        p.Nombre = m.Nombre ?? p.Nombre;
-        p.UserName = m.UserName ?? p.UserName;
-        p.Bio = m.Bio ?? string.Empty;
-        p.ImagenPerfil = string.IsNullOrWhiteSpace(m.RutaFotoPerfil)
-            ? FotoPerfilPorDefecto
-            : m.RutaFotoPerfil.Trim();
-    }
-
-    // Rellena el perfil con prompts y actividad inventados (demo sin base de datos).
-    private static void RellenarPerfilConEjemploDatos(PerfilViewModel p)
-    {
-        var ahora = DateTime.UtcNow;
-
-        // Iniciales para tarjetas demo: dos letras a partir del nombre visible actual.
-        var nombreTrim = p.Nombre.Trim();
-        var inicialesPerfil = nombreTrim.Length >= 2
-            ? $"{char.ToUpperInvariant(nombreTrim[0])}{char.ToUpperInvariant(nombreTrim[1])}"
-            : nombreTrim.Length == 1
-                ? $"{char.ToUpperInvariant(nombreTrim[0])}·"
-                : "··";
-
-        // Prompts que el usuario del perfil publicó
-        p.Publicados = new List<PromptViewModel>
+    private static int DInt(Dictionary<string, object> d, string k) =>
+        d.TryGetValue(k, out var v) ? v switch
         {
-            CrearPromptEjemploPerfil(501, "Email de seguimiento B2B cordial",
-                "Redacta un correo de seguimiento 48 h después de una demo, tono profesional y breve.",
-                p.Nombre, p.UserName, inicialesPerfil, "#104B70", "Ventas", 34, 5, 12, 1, ahora),
-            CrearPromptEjemploPerfil(502, "Brief creativo para campaña estival",
-                "Genera un brief con objetivo, público, tono y 3 ideas de mensaje para redes.",
-                p.Nombre, p.UserName, inicialesPerfil, "#0e536e", "Marketing", 21, 8, 19, 4, ahora),
-            CrearPromptEjemploPerfil(503, "Checklist de revisión de prompt",
-                "Lista en viñetas qué revisar antes de compartir un prompt con el equipo.",
-                p.Nombre, p.UserName, inicialesPerfil, "#6998b8", "Producto", 56, 11, 31, 9, ahora),
-        };
+            int i => i, long l => (int)l, double x => (int)x,
+            _ => int.TryParse(v.ToString(), out var n) ? n : 0
+        } : 0;
 
-        // Prompts de otros que guardó
-        p.Guardados = new List<PromptViewModel>
-        {
-            CrearPromptEjemploPerfil(601, "Resumen ejecutivo en 5 viñetas",
-                "Convierte un informe largo en un resumen para C-level con métricas clave.",
-                "Marco Ruiz", "marco_r", "MR", "#2d6a4f", "Negocio", 89, 14, 40, 2, ahora),
-            CrearPromptEjemploPerfil(602, "Guion de voz para tutorial de 2 min",
-                "Escribe un guion claro con pausas y énfasis para video de onboarding.",
-                "Lucía Méndez", "lucia_m", "LM", "#bc6c25", "Educación", 45, 6, 22, 6, ahora),
-        };
-
-        // Prompts de otros a los que dio me gusta
-        p.Likeados = new List<PromptViewModel>
-        {
-            CrearPromptEjemploPerfil(701, "Ideas de hooks para LinkedIn técnico",
-                "10 hooks que no suenen a clickbait para posts sobre ingeniería de datos.",
-                "Ana Torres", "ana_t", "AT", "#5c4d7d", "Redes", 120, 23, 55, 0, ahora),
-            CrearPromptEjemploPerfil(702, "Traducción neutra ES ↔ EN para UI",
-                "Traduce textos de interfaz manteniendo longitud similar y tono inclusivo.",
-                "Diego Paredes", "diego_p", "DP", "#457b9d", "Localización", 67, 9, 28, 3, ahora),
-            CrearPromptEjemploPerfil(703, "Retro de sprint en tono positivo",
-                "Estructura una retro con qué salió bien, riesgos y 3 acciones con responsable.",
-                "Elena Vázquez", "elena_v", "EV", "#9b2226", "Equipos", 38, 4, 15, 11, ahora),
-        };
-
-        // Interacciones de terceros con los prompts del perfil
-        p.Actividad = new List<PerfilActividadItemViewModel>
-        {
-            new PerfilActividadItemViewModel
-            {
-                Tipo = "guardado",
-                ActorNombre = "Lucía Méndez",
-                ActorUserName = "lucia_m",
-                TituloPrompt = "Email de seguimiento B2B cordial",
-                Momento = "hace 35 min",
-            },
-            new PerfilActividadItemViewModel
-            {
-                Tipo = "like",
-                ActorNombre = "Marco Ruiz",
-                ActorUserName = "marco_r",
-                TituloPrompt = "Brief creativo para campaña estival",
-                Momento = "hace 2 h",
-            },
-            new PerfilActividadItemViewModel
-            {
-                Tipo = "comentario",
-                ActorNombre = "Ana Torres",
-                ActorUserName = "ana_t",
-                TituloPrompt = "Checklist de revisión de prompt",
-                Momento = "hace 5 h",
-                ExtractoComentario = "Lo usamos en el equipo de diseño, ¡mil gracias!",
-            },
-            new PerfilActividadItemViewModel
-            {
-                Tipo = "like",
-                ActorNombre = "Equipo Cobalt",
-                ActorUserName = "cobalt_legends",
-                TituloPrompt = "Email de seguimiento B2B cordial",
-                Momento = "ayer",
-            },
-            new PerfilActividadItemViewModel
-            {
-                Tipo = "guardado",
-                ActorNombre = "Diego Paredes",
-                ActorUserName = "diego_p",
-                TituloPrompt = "Checklist de revisión de prompt",
-                Momento = "ayer",
-            },
-            new PerfilActividadItemViewModel
-            {
-                Tipo = "comentario",
-                ActorNombre = "Elena Vázquez",
-                ActorUserName = "elena_v",
-                TituloPrompt = "Brief creativo para campaña estival",
-                Momento = "hace 2 días",
-                ExtractoComentario = "¿Podrías añadir una variante más informal?",
-            },
-        };
-
-        p.NumeroPublicaciones = p.Publicados.Count;
-    }
-
-    // Construye un prompt de demostración para las pestañas del perfil.
-    private static PromptViewModel CrearPromptEjemploPerfil(
-        int id,
-        string titulo,
-        string cuerpo,
-        string autor,
-        string user,
-        string iniciales,
-        string color,
-        string cat,
-        int likes,
-        int com,
-        int saves,
-        int dias,
-        DateTime ahora)
+    // Foto: ruta API → archivo en wwwroot o última subida
+    private string UrlFoto(string? ruta, int id)
     {
-        var fecha = ahora.AddDays(-dias);
-        return new PromptViewModel
+        const string def = "/Imagenes/fotosperfil/trabajador.jpg";
+        string? rel = null;
+        if (!string.IsNullOrWhiteSpace(ruta))
         {
-            Id = id,
-            IdUsuario = 0,
-            Title = titulo,
-            Prompt = cuerpo,
-            AuthorName = autor,
-            Username = user,
-            InitialsProfile = iniciales,
-            CircleColor = color,
-            Category = cat,
-            Likes = likes,
-            Comments = com,
-            Saves = saves,
-            CreatedAt = dias == 0 ? "hoy" : dias == 1 ? "ayer" : $"hace {dias} días",
-            FechaPublicacion = fecha,
-            Trending = false,
-        };
-    }
-
-    // Valida el texto del comentario enviado desde Perfil (misma lógica que Explorar, sin JSON).
-    private static string ValidarTextoComentarioPerfil(string comentario)
-    {
-        var malasPalabras = new List<string>
-        {
-            "palabra1", "palabra2", "palabra3", "palabra4", "palabra5",
-            "palabra6", "palabra7", "palabra8", "palabra9", "palabra10"
-        };
-
-        if (string.IsNullOrWhiteSpace(comentario))
-            return "Escribe un comentario antes de publicar.";
-
-        var comentarioMinusculas = comentario.ToLower();
-        if (malasPalabras.Any(p => comentarioMinusculas.Contains(p)))
-            return "Tu comentario contiene palabras no permitidas. Por favor, sé respetuoso.";
-
-        // API: POST comentario (promptId + texto).
-        return "¡Comentario publicado con éxito!";
-    }
-
-    //Valida nombre, usuario y bio al editar perfil (límites en PerfilEdicionOpciones).
-    private void ValidarPerfilEditar(PerfilEditarViewModel model, ModelStateDictionary modelState)
-    {
-        if (string.IsNullOrWhiteSpace(model.Nombre))
-            modelState.AddModelError(nameof(model.Nombre), "El nombre es obligatorio.");
-        else if (model.Nombre.Trim().Length > PerfilLimites.MaxNombre)
-            modelState.AddModelError(nameof(model.Nombre), $"El nombre no puede superar {PerfilLimites.MaxNombre} caracteres.");
-
-        if (string.IsNullOrWhiteSpace(model.UserName))
-            modelState.AddModelError(nameof(model.UserName), "El usuario es obligatorio.");
-        else if (model.UserName.Trim().Length > PerfilLimites.MaxUserName)
-            modelState.AddModelError(nameof(model.UserName), $"El usuario no puede superar {PerfilLimites.MaxUserName} caracteres.");
-        else if (!RegexUserNamePerfil.IsMatch(model.UserName.Trim()))
-            modelState.AddModelError(nameof(model.UserName), "Solo letras, números y guion bajo.");
-
-        if (model.Bio != null && model.Bio.Length > PerfilLimites.MaxBio)
-            modelState.AddModelError(nameof(model.Bio), $"La biografía no puede superar {PerfilLimites.MaxBio} caracteres.");
-    }
-
-    // Demo: guarda en wwwroot. API: multipart al endpoint de avatar; devolver URL.
-    private async Task<string?> GuardarFotoPerfilAsync(IFormFile foto, int idUsuario)
-    {
-        if (foto == null || foto.Length == 0)
-            return null;
-
-        var extension = Path.GetExtension(foto.FileName).ToLowerInvariant();
-        var permitidas = PerfilLimites.ExtensionesFotoPermitidas
-            .Select(e => e.StartsWith('.') ? e.ToLowerInvariant() : "." + e.ToLowerInvariant())
-            .ToArray();
-
-        if (!permitidas.Contains(extension))
-            return null;
-
-        var carpeta = Path.Combine(_env.WebRootPath, PerfilLimites.CarpetaFotosRelativa.Replace('/', Path.DirectorySeparatorChar));
-        Directory.CreateDirectory(carpeta);
-
-        var nombreArchivo = $"{Guid.NewGuid()}_FotoUsuario{idUsuario}{extension}";
-        var rutaCompleta = Path.Combine(carpeta, nombreArchivo);
-
-        await using (var stream = new FileStream(rutaCompleta, FileMode.Create))
-        {
-            await foto.CopyToAsync(stream);
+            rel = ruta.Trim().Replace("/imagenes/", "/Imagenes/", StringComparison.OrdinalIgnoreCase);
+            if (!rel.StartsWith('/')) rel = "/" + rel;
+            if (!System.IO.File.Exists(Wwwroot(rel))) rel = null;
         }
+        if (rel == null)
+        {
+            var dir = Path.Combine(_env.WebRootPath, "Imagenes", "fotosperfil");
+            var f = Directory.Exists(dir)
+                ? Directory.GetFiles(dir, $"*FotoUsuario{id}*").OrderByDescending(System.IO.File.GetLastWriteTimeUtc).FirstOrDefault()
+                : null;
+            rel = f != null ? $"/Imagenes/fotosperfil/{Path.GetFileName(f)}" : def;
+        }
+        return Url.Content("~" + rel)!;
+    }
 
-        var carpetaUrl = PerfilLimites.CarpetaFotosRelativa.Trim('/').Replace('\\', '/');
-        return $"/{carpetaUrl}/{nombreArchivo}";
+    private string Wwwroot(string rel) =>
+        Path.Combine(_env.WebRootPath, rel.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+    private static string ValidarComentario(string t)
+    {
+        if (string.IsNullOrWhiteSpace(t)) return "Escribe un comentario antes de publicar.";
+        var malas = new[] { "palabra1", "palabra2", "palabra3", "palabra4", "palabra5",
+            "palabra6", "palabra7", "palabra8", "palabra9", "palabra10" };
+        return malas.Any(p => t.Contains(p, StringComparison.OrdinalIgnoreCase))
+            ? "Tu comentario contiene palabras no permitidas. Por favor, sé respetuoso."
+            : "¡Comentario publicado con éxito!";
+    }
+
+    private async Task<string?> GuardarFotoAsync(IFormFile foto, int id)
+    {
+        var ext = Path.GetExtension(foto.FileName).ToLowerInvariant();
+        if (!new[] { ".jpg", ".jpeg", ".png", ".gif" }.Contains(ext)) return null;
+        var dir = Path.Combine(_env.WebRootPath, "Imagenes", "fotosperfil");
+        Directory.CreateDirectory(dir);
+        var name = $"{Guid.NewGuid()}_FotoUsuario{id}{ext}";
+        await using var s = new FileStream(Path.Combine(dir, name), FileMode.Create);
+        await foto.CopyToAsync(s);
+        return $"/Imagenes/fotosperfil/{name}";
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

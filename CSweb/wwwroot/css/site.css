@@ -287,6 +287,13 @@ body {
     transform: scale(1.05);
 }
 
+/* foco visible al navegar con teclado (Tab) */
+.stat-icon-btn:focus-visible {
+    outline: 2px solid #104B70;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
 /* cuando el usuario ya dio like */
 .like-btn.liked {
     color: #dc3545;
