@@ -1,8 +1,344 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model CSweb.Models.HomeViewModel
+
+@{
+    ViewData["Title"] = "Inicio";
+    Layout = "_Layout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+}
+
+<div class="home-page">
+
+    <div class="container home-hero text-center">
+
+        <h1 class="home-title"> 
+            <img src="~/Imagenes/LogoWhirlpool.png"
+             class="home-logo mb-4"
+             alt="Whirlpool Prompt" />
+             Prompt
+        </h1>
+        
+
+        <p class="home-subtitle mb-4">
+            Encuentra el prompt perfecto
+        </p>
+
+        @* Search bar principal *@
+        <div class="home-search-wrapper mb-4">
+
+            @* GET porque solo consulta prompts *@
+            <form asp-controller="Home"
+                  asp-action="Index"
+                  method="get">
+
+                <div class="home-search d-flex align-items-center gap-3">
+
+                    <i class="bi bi-search text-muted"></i>
+
+                    <input type="text"
+                           name="query"
+                           value="@Context.Request.Query["query"]"
+                           class="form-control"
+                           placeholder="Buscar contenido, creadores, temas..." />
+
+                    @* reutiliza diseño visual de explorar *@
+                    <button type="submit"
+                        class="btn explorar-btn-search rounded-pill px-4">
+                        Buscar
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="container">
+
+        @* estadísticas superiores *@
+        <div class="row g-4 mb-4">
+
+            <div class="col-12 col-md-4">
+
+                <div class="home-stat-card text-center">
+
+                    <div class="home-stat-number">
+                        @Model.CreadoresActivos.ToString("N0")+
+                    </div>
+
+                    <p class="mb-0 opacity-75">
+                        Creadores Activos
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-12 col-md-4">
+
+                <div class="home-stat-card text-center">
+
+                    <div class="home-stat-number">
+                        @Model.PostsHoy.ToString("N0")+
+                    </div>
+
+                    <p class="mb-0 opacity-75">
+                        Posts Hoy
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-12 col-md-4">
+
+                <div class="home-stat-card text-center">
+
+                    <div class="home-stat-number">
+                        @Model.MiembrosComunidad.ToString("N0")+
+                    </div>
+
+                    <p class="mb-0 opacity-75">
+                        Miembros de la Comunidad
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row g-4 align-items-start">
+
+            @* columna izquierda principal *@
+            <div class="col-12 col-lg-8">
+
+                <div class="home-panel">
+
+                    <div class="d-flex align-items-center gap-2 mb-4">
+                        <h3 class="h4 mb-0 fw-semibold">
+                            Actividades Recientes
+                        </h3>
+
+                    </div>
+
+                    <div class="d-flex flex-column gap-3 home-activity-list">
+                        @if (Model.Actividades != null && Model.Actividades.Count > 0)
+                        {
+                            @foreach (var actividad in Model.Actividades)
+                            {
+                                <div class="home-activity-item">
+
+                                    <div class="d-flex justify-content-between align-items-center gap-3">
+
+                                        <div class="d-flex align-items-center gap-3">
+
+                                            @* avatar del usuario *@
+                                            <img src="@actividad.ImagenPerfil"
+                                                class="home-avatar"
+                                                alt="perfil" />
+
+                                            <div>
+
+                                                <p class="mb-1">
+
+                                                    <span class="fw-semibold">
+                                                        @actividad.Nombre
+                                                    </span>
+
+                                                    <span class="text-muted">
+                                                        @actividad.Accion
+                                                    </span>
+
+                                                </p>
+
+                                                <p class="text-muted home-mini-text mb-2">
+                                                    @actividad.Tiempo
+                                                </p>
+
+                                                @* reutiliza estilos de explorar *@
+                                                <div class="d-flex align-items-center gap-3 text-muted">
+
+                                                    <button type="button"
+                                                            class="stat-icon-btn">
+
+                                                        <i class="bi bi-heart"></i>
+
+                                                        <span>
+                                                            @actividad.Likes
+                                                        </span>
+
+                                                    </button>
+
+                                                    <button type="button"
+                                                            class="stat-icon-btn">
+
+                                                        <i class="bi bi-chat"></i>
+
+                                                        <span>
+                                                            @actividad.Comentarios
+                                                        </span>
+
+                                                    </button>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        @* fake preview placeholder *@
+                                        <img src="@actividad.ImagenPreview"
+                                            class="home-preview"
+                                            alt="preview" />
+
+                                    </div>
+
+                                </div>
+                            }
+
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                Sin actividad reciente
+                            </div>
+                        }
+
+                    </div>
+
+                    <div class="text-center mt-4">
+
+                        <a asp-controller="Home"
+                           asp-action="Explorar"
+                           class="btn btn-light rounded-pill px-4 shadow-sm">
+
+                            Ver todas las actividades
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            @* sidebar derecha *@
+            <div class="col-12 col-lg-4">
+
+                <div class="d-flex flex-column gap-4">
+
+                    @* tendencias *@
+                    <div class="home-panel">
+
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <h3 class="h4 fw-semibold mb-0">
+                                Tendencias Actuales
+                            </h3>
+
+                        </div>
+                        <div class="home-trend-list">
+                            @if (Model.Tendencias != null && Model.Tendencias.Count > 0)
+                            {
+                                @foreach (var tendencia in Model.Tendencias)
+                                {
+                                    <a asp-controller="Home"
+                                    asp-action="Explorar"
+                                    asp-route-query="@tendencia.Nombre"
+                                    class="home-trend-link">
+
+                                        <p class="fw-semibold mb-1">
+                                            @tendencia.Nombre
+                                        </p>
+
+                                        <p class="text-muted small mb-0">
+                                            @tendencia.Posts posts
+                                        </p>
+
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-4 text-muted">
+                                    No hay tendencias actuales
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+
+                    @* creadores sugeridos *@
+                    <div class="home-panel">
+
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <h3 class="h4 fw-semibold mb-0">
+                                Creadores Sugeridos
+                            </h3>
+
+                        </div>
+                        <div class="home-creator-list">
+                            @if (Model.Creadores != null && Model.Creadores.Count > 0)
+                            {
+                                @foreach (var creador in Model.Creadores)
+                                {
+                                    <div class="home-creator-item">
+
+                                        <div class="d-flex align-items-center gap-3">
+
+                                            <img src="@creador.Imagen"
+                                                class="home-creator-avatar"
+                                                alt="creador" />
+
+                                            <div>
+
+                                                <p class="fw-semibold mb-1">
+                                                    @creador.Nombre
+                                                </p>
+
+                                                <p class="text-muted small mb-0">
+                                                    @creador.Categoria
+                                                </p>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="text-end">
+
+                                            <p class="fw-semibold small mb-0">
+                                                @creador.Seguidores
+                                            </p>
+
+                                            <p class="text-muted home-mini-text mb-0">
+                                                seguidores
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-4 text-muted">
+                                    No hay usuarios sugeridos
+                                </div>
+                            }
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>

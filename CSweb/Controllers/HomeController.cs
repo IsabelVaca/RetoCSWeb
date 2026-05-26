@@ -22,9 +22,125 @@ public class HomeController : Controller
         _perfilApi = perfilApi;
     }
 
-    public IActionResult Index()
+    public IActionResult Index(string query)
     {
-        return View();
+        var datos = new HomeViewModel
+        {
+            // Poner API stuff
+            // Obtener elo de abajo
+            CreadoresActivos = 1200,
+            PostsHoy = 5800,
+            MiembrosComunidad = 23000,
+            Actividades = new List<HomeActividadViewModel>
+            {
+                new HomeActividadViewModel
+                {
+                    Nombre = "Alex Rivera",
+                    Accion = "publicó un nuevo diseño",
+                    Tiempo = "hace 2 min",
+                    Likes = 124,
+                    Comentarios = 18,
+                    ImagenPerfil = "/Imagenes/1.png",
+                    ImagenPreview = "/Imagenes/2.png"
+                },
+                new HomeActividadViewModel
+                {
+                    Nombre = "Sarah Chen",
+                    Accion = "le gustó una publicación",
+                    Tiempo = "hace 5 min",
+                    Likes = 89,
+                    Comentarios = 12,
+                    ImagenPerfil = "/Imagenes/3.png",
+                    ImagenPreview = "/Imagenes/4.png"
+                },
+                new HomeActividadViewModel
+                {
+                    Nombre = "Marcus James",
+                    Accion = "comentó en tu publicación",
+                    Tiempo = "hace 12 min",
+                    Likes = 156,
+                    Comentarios = 24,
+                    ImagenPerfil = "/Imagenes/5.png",
+                    ImagenPreview = "/Imagenes/6.png"
+                }
+
+            },
+            Tendencias = new List<HomeTendenciaViewModel>
+            {
+                new HomeTendenciaViewModel
+                {
+                    Nombre = "Estilos de Marketing",
+                    Posts = 1234
+                },
+                new HomeTendenciaViewModel
+                {
+                    Nombre = "Gráficos Financieros",
+                    Posts = 892
+                },
+                new HomeTendenciaViewModel
+                {
+                    Nombre = "Plantillas",
+                    Posts = 567
+                },
+                new HomeTendenciaViewModel
+                {
+                    Nombre = "Herramientas Modernas",
+                    Posts = 445
+                }
+            },
+            Creadores = new List<HomeCreadorViewModel>
+            {
+                new HomeCreadorViewModel
+                {
+                    Nombre = "Jordan Smith",
+                    Categoria = "Arte Digital",
+                    Imagen = "/Imagenes/1.png",
+                    Seguidores = "2.8k"
+                },
+
+                new HomeCreadorViewModel
+                {
+                    Nombre = "Maya Rodriguez",
+                    Categoria = "Fotografía",
+                    Imagen = "/Imagenes/2.png",
+                    Seguidores = "3.2k"
+                },
+
+                new HomeCreadorViewModel
+                {
+                    Nombre = "Chris Lee",
+                    Categoria = "Diseño 3D",
+                    Imagen = "/Imagenes/3.png",
+                    Seguidores = "1.9k"
+                }
+            }
+        };
+        // filtro local temporal
+        // Poner API stuff
+        // Flask deberá regresar resultados filtrados
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            string texto = query.ToLower();
+
+            datos.Actividades = datos.Actividades
+                .Where(a =>
+                    a.Nombre.ToLower().Contains(texto) ||
+                    a.Accion.ToLower().Contains(texto))
+                .ToList();
+
+            datos.Creadores = datos.Creadores
+                .Where(c =>
+                    c.Nombre.ToLower().Contains(texto) ||
+                    c.Categoria.ToLower().Contains(texto))
+                .ToList();
+
+            datos.Tendencias = datos.Tendencias
+                .Where(t =>
+                    t.Nombre.ToLower().Contains(texto))
+                .ToList();
+        }
+        return View(datos);
     }
 
     public IActionResult Privacy()

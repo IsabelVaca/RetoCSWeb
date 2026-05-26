@@ -4,6 +4,7 @@
 
 @{
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    bool isHomePage = currentAction == "Index";
 
     string ActiveClass(string action)
     {if (currentAction == action)
@@ -36,7 +37,7 @@
     @* toolbar *@
     @* position.. al dar scroll no se mueve el toolbar *@
     @* w-100.. pone el ancho de la pagina al 100% *@
-    <header class="position-fixed w-100 tb-container">
+    <header class="position-fixed w-100 tb-container" style="background-color: ;">
     <div class="container-fluid px-4 py-3">
         <div class="row align-items-center">
 
