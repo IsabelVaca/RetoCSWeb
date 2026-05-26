@@ -1,43 +1,70 @@
-// Configuración en código; no se usa appsettings.json para datos de la app.
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.SetMinimumLevel(LogLevel.Information);
-builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
 
+
+// API Flask de perfil (base de datos).
 // Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddDistributedMemoryCache();
 
-builder.Services.AddSession(options =>
+const string perfilApiUrl = "http://127.0.0.1:8001";
+
+
+
+
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddSession();
+
+
+
+builder.Services.AddHttpClient<CSweb.Services.IPerfilApiService, CSweb.Services.PerfilApiService>(client =>
+
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(20);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
+
+    client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
+
 });
+
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
+
 if (!app.Environment.IsDevelopment())
+
 {
+
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+
     app.UseHsts();
+
 }
 
+
+
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
+
+
 app.UseRouting();
 
-app.UseAuthorization();
+
 
 app.UseSession();
 
-app.MapStaticAssets();
+app.UseAuthorization();
+
+
 
 app.MapControllerRoute(
+
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
 
 app.Run();
+

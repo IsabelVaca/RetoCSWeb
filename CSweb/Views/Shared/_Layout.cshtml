@@ -97,49 +97,9 @@
                 </nav>
             </div>
 
-            @* columna derecha: perfil *@
+            @* columna derecha: userName desde API de perfil (UsuarioNavbarViewComponent) *@
             <div class="col-2 d-none d-md-flex justify-content-end">
-                <div class="dropdown">
-                    <button class="btn border rounded-pill shadow d-flex align-items-center gap-2 px-3 py-2 toolbar-blur
-                    @(isHomePage ? "toolbar-home-profile" : "bg-white bg-opacity-75")"
-                            type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false">
-
-                        <span class="rounded-circle d-inline-flex align-items-center justify-content-center text-white fw-semibold profile-circle">
-                            SC
-                        </span>
-
-                        <span class="fw-semibold small @(isHomePage ? "text-white" : "")">
-                            Jimmy
-                        </span>
-                    </button>
-
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2">
-                        <li class="px-3 py-2">
-                            <p class="mb-0 fw-semibold small">Jimmy</p>
-                            <p class="mb-0 text-muted small">Sesión: Invitado</p>
-                        </li>
-
-                        <li>
-                            <a class="dropdown-item small rounded-3"
-                               asp-controller="Home"
-                               asp-action="Ajustes">
-                                <i class="bi bi-gear"></i> : Ajustes
-                            </a>
-                        </li>
-
-                        <li><hr class="dropdown-divider" /></li>
-
-                        <li>
-                            <a class="dropdown-item small rounded-3 text-danger"
-                               asp-controller="Home"
-                               asp-action="Login">
-                                <i class="bi bi-box-arrow-right"></i> : Cerrar Sesión
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+                @await Component.InvokeAsync("UsuarioNavbar")
             </div>
 
         </div>

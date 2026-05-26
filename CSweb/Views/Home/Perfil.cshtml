@@ -1,70 +1,55 @@
 @* Perfil: cabecera, pestañas (?tab=), editar, actividad o tarjetas. Datos en @Model y ViewBag (HomeController.PrepararViewBagPerfil). *@
 @model CSweb.Models.PerfilViewModel
 @{
-    // Datos del formulario editar, limites y lista de prompts (ViewBag desde el controlador)
     ViewData["Title"] = "Perfil";
-    Layout = "_Layout";
-    // Datos del formulario editar  
     var editar = (PerfilEditarViewModel)ViewBag.PerfilEditar!;
-    // Limites de edicion del perfil
-    var limites = (PerfilEdicionOpciones)ViewBag.PerfilLimites!;
-    // Lista de prompts segun la pestana
     var prompts = (List<PromptViewModel>)ViewBag.Prompts!;
+    var tab = (string)ViewBag.Tab!;
+    var enEditar = (bool)ViewBag.EnEditar;
+    var enActividad = (bool)ViewBag.EnActividad;
+    var enGuardados = (bool)ViewBag.EnGuardados;
+    var enLikeados = (bool)ViewBag.EnLikeados;
 }
-
 <div class="py-5">
   <div class="container perfil-page">
     <div class="mb-5">
-      @* Cabecera del perfil *@
-      @* Foto de perfil *@
       <div class="row align-items-start">
         <div class="col-md-3 d-flex justify-content-center">
-          <img src="@ViewBag.UrlFotoCabecera" alt="Foto de perfil"
-               class="img-fluid rounded-4 perfil-foto-principal"
+          <img src="@ViewBag.UrlFotoCabecera" alt="Foto de perfil" class="img-fluid rounded-4 perfil-foto-principal"
                style="width: 250px; height: 250px; object-fit: cover;">
         </div>
-        @* Nombre, usuario, bio y estadisticas *@
         <div class="col-md-9 ps-4">
           <h1 class="perfil-nombre fw-bold mb-2">@Model.Nombre</h1>
           <p class="perfil-handle text-muted mb-3">@@@Model.UserName</p>
           <p class="perfil-bio text-dark mb-2">@Model.Bio</p>
-          @* Numero de publicaciones *@
-          <p class="perfil-stats mb-2">
-            <span class="fw-bold">@Model.NumeroPublicaciones</span>
-            <span class="text-muted"> publicados</span>
-          </p>
-          @* Mensaje de exito tras guardar *@
+          <p class="perfil-stats mb-2"><span class="fw-bold">@Model.NumeroPublicaciones</span> <span class="text-muted">publicados</span></p>
+          @if (TempData["PerfilError"] is string err)
+          {
+            <div class="alert alert-danger py-2 px-3 small mb-2">@err</div>
+          }
           @if (TempData["PerfilMensaje"] is string ok)
           {
-            <div class="alert alert-success py-2 px-3 small mb-2" role="status">@ok</div>
+            <div class="alert alert-success py-2 px-3 small mb-2">@ok</div>
           }
-          @* Botón de editar perfil *@
-          @if (!(bool)ViewBag.EnEditar)
+          @if (!enEditar)
           {
-            <a class="btn btn-sm rounded-pill px-3 perfil-btn-editar"
-               asp-controller="Home" asp-action="Perfil" asp-route-tab="editar">
+            <a class="btn btn-sm rounded-pill px-3 perfil-btn-editar" asp-action="Perfil" asp-route-tab="editar">
               <i class="bi bi-pencil-square me-1"></i> Editar
             </a>
           }
         </div>
       </div>
 
-      @* Pestañas: publicados, guardados, likeados, actividad (GET ?tab=) *@
-      @if (!(bool)ViewBag.EnEditar)
+      @if (!enEditar)
       {
-        @* Barra de pestañas *@
         <div class="row mt-4 mb-3">
           <div class="col-12 d-flex justify-content-center justify-content-md-start">
-            <nav class="navbar navbar-expand bg-white bg-opacity-75 border rounded-pill shadow px-2 px-sm-3 py-2 toolbar-blur perfil-pubs-nav"
-                 aria-label="Secciones del perfil">
-              <div class="navbar-nav flex-row flex-wrap gap-1 align-items-center justify-content-center">
+            <nav class="navbar navbar-expand bg-white bg-opacity-75 border rounded-pill shadow px-2 py-2 toolbar-blur perfil-pubs-nav">
+              <div class="navbar-nav flex-row flex-wrap gap-1">
                 @foreach (var t in (IEnumerable<(string Id, string Icon, string Label)>)ViewBag.TabsNav!)
                 {
-                  <a class="nav-link toolbar-icon rounded-pill px-2 px-sm-3 d-inline-flex align-items-center gap-1 @(string.Equals((string)ViewBag.Tab!, t.Id, StringComparison.OrdinalIgnoreCase) ? "active" : "")"
-                     asp-controller="Home" asp-action="Perfil" asp-route-tab="@t.Id" title="@t.Label">
-                    <i class="bi @t.Icon"></i>
-                    <span class="perfil-tab-text">@t.Label</span>
-                  </a>
+                  <a class="nav-link toolbar-icon rounded-pill px-2 px-sm-3 d-inline-flex align-items-center gap-1 @(tab == t.Id ? "active" : "")"
+                     asp-action="Perfil" asp-route-tab="@t.Id"><i class="bi @t.Icon"></i><span class="perfil-tab-text">@t.Label</span></a>
                 }
               </div>
             </nav>
@@ -72,174 +57,130 @@
         </div>
       }
 
-
-      @* Panel principal: una sola sección según la pestaña *@
-      <div class="row@((bool)ViewBag.EnEditar ? " mt-4" : "")">
+      <div class="row@(enEditar ? " mt-4" : "")">
         <div class="col-12 perfil-tab-panel rounded-3 border bg-white bg-opacity-75 p-4">
 
-          @* Editar: formulario POST EditarPerfil (foto + texto) *@
-          @if ((bool)ViewBag.EnEditar)
+          @if (enEditar)
           {
-            @* Título del formulario *@
-            <h2 class="h5 fw-semibold text-dark mb-3">Editar</h2>
-            @* Formulario POST a Home/EditarPerfil *@
-            <form asp-controller="Home" asp-action="EditarPerfil" method="post" enctype="multipart/form-data" class="perfil-editar-form">
+            <h2 class="h5 fw-semibold mb-3">Editar</h2>
+            <form asp-action="EditarPerfil" method="post" enctype="multipart/form-data" class="perfil-editar-form">
               <input type="hidden" name="RutaFotoPerfil" value="@(editar.RutaFotoPerfil ?? "")" />
               <div asp-validation-summary="All" class="text-danger small mb-3"></div>
-              @* Foto de perfil y vista previa *@
-              <div class="row g-3 align-items-start">
-                <div class="col-md-4 col-lg-3 text-center">
-                  <img src="@ViewBag.UrlFotoEditar" alt="Foto actual" class="img-fluid rounded-4 perfil-foto-preview mb-2" id="perfil-foto-preview" />
-                  <label class="form-label fw-semibold small d-block" for="perfil-editar-foto">Foto de perfil</label>
-                  <input type="file" id="perfil-editar-foto" name="FotoPerfil" class="form-control form-control-sm rounded-3"
-                         accept="@string.Join(",", limites.ExtensionesFotoPermitidas)" />
-                  <p class="text-muted extra-small mb-0 mt-1">
-                    @* Formatos de foto permitidos *@
-                    Formatos: @string.Join(", ", limites.ExtensionesFotoPermitidas). Sin archivo nuevo se mantiene la foto actual.
-                  </p>
+              <div id="perfil-editar-errores-cliente" class="text-danger small mb-3 d-none"></div>
+              <div class="row g-3">
+                <div class="col-md-4 text-center">
+                  <img src="@ViewBag.UrlFotoEditar" alt="Foto" class="img-fluid rounded-4 perfil-foto-preview mb-2" id="perfil-foto-preview" />
+                  <label class="form-label small fw-semibold" for="perfil-editar-foto">Foto</label>
+                  <input type="file" id="perfil-editar-foto" name="FotoPerfil" class="form-control form-control-sm rounded-3" />
+                  <p id="perfil-formatos-foto" class="text-muted extra-small mb-0"></p>
                 </div>
-                @* Columna derecha: nombre, usuario y biografía *@
-                <div class="col-md-8 col-lg-9">
+                <div class="col-md-8">
                   <div class="row g-3">
-                    @* Nombre del perfil *@
                     <div class="col-md-6">
-                      <label class="form-label fw-semibold small" for="perfil-editar-nombre">Nombre</label>
-                      <input type="text" id="perfil-editar-nombre" name="Nombre" class="form-control rounded-3"
-                             value="@editar.Nombre" maxlength="@limites.MaxNombre" required />
+                      <label class="form-label small fw-semibold" for="perfil-editar-nombre">Nombre</label>
+                      <input type="text" id="perfil-editar-nombre" name="Nombre" class="form-control rounded-3" value="@editar.Nombre" required />
                     </div>
-                    @* Usuario del perfil *@
                     <div class="col-md-6">
-                      <label class="form-label fw-semibold small" for="perfil-editar-user">Usuario</label>
+                      <label class="form-label small fw-semibold" for="perfil-editar-user">Usuario</label>
                       <div class="input-group">
-                        <span class="input-group-text rounded-start-3 text-muted">@@</span>
-                        <input type="text" id="perfil-editar-user" name="UserName" class="form-control rounded-end-3"
-                               value="@editar.UserName" maxlength="@limites.MaxUserName" required />
+                        <span class="input-group-text rounded-start-3">@@</span>
+                        <input type="text" id="perfil-editar-user" name="UserName" class="form-control rounded-end-3" value="@editar.UserName" required />
                       </div>
                     </div>
-                    @* Biografía del perfil *@
                     <div class="col-12">
-                      <label class="form-label fw-semibold small" for="perfil-editar-bio">Biografía</label>
-                      <textarea id="perfil-editar-bio" name="Bio" class="form-control rounded-3" rows="4"
-                                maxlength="@limites.MaxBio">@editar.Bio</textarea>
+                      <label class="form-label small fw-semibold" for="perfil-editar-bio">Biografía</label>
+                      <textarea id="perfil-editar-bio" name="Bio" class="form-control rounded-3" rows="4">@editar.Bio</textarea>
+                      <p class="text-muted extra-small text-end mb-0"><span id="contador-chars">0</span>/500</p>
                     </div>
                   </div>
                 </div>
               </div>
-              @* Botones de guardar y cancelar *@
-              <div class="d-flex flex-wrap gap-2 mt-4">
-                @* Botón de guardar cambios *@
+              <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn perfil-btn-guardar rounded-pill px-4">Guardar cambios</button>
-                @* Botón de cancelar *@
-                <a class="btn btn-outline-secondary rounded-pill px-4" asp-controller="Home" asp-action="Perfil" asp-route-tab="publicados">Cancelar</a>
+                <a class="btn btn-outline-secondary rounded-pill px-4" asp-action="Perfil" asp-route-tab="publicados">Cancelar</a>
               </div>
             </form>
           }
-
-
-          @* Actividad: lista de interacciones *@
-          else if ((bool)ViewBag.EnActividad)
+          else if (enActividad)
           {
-            @* Título de la actividad *@
-            <p class="mb-3 fw-semibold text-dark">Actividad en tus prompts</p>
-            <ul class="list-unstyled mb-0 perfil-actividad-list">
-              @foreach (var ev in Model.Actividad)
-              {
-                @* Tipo de interacción *@
-                var tipo = ev.Tipo.ToLowerInvariant();
-                @* Icono de la interacción *@
-                var icono = tipo == "guardado" ? "bi-bookmark-fill" : tipo == "like" ? "bi-heart-fill" : "bi-chat-dots-fill";
-                @* Verbo de la interacción *@
-                var verbo = tipo == "guardado" ? " guardó " : tipo == "like" ? " dio me gusta a " : " comentó en ";
-                <li class="perfil-actividad-item d-flex gap-3 py-3 border-bottom border-light">
-                  <div class="perfil-actividad-icon rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                    <i class="bi @icono text-white small"></i>
-                  </div>
-                  <div class="flex-grow-1 min-w-0">
-                    <p class="mb-1 small">
-                      <span class="fw-semibold">@ev.ActorNombre</span>
-                      <span class="text-muted">@@@ev.ActorUserName</span>
-                      <span class="text-muted">@verbo</span>
-                      <span class="fw-semibold">«@ev.TituloPrompt»</span>
-                    </p>
-                    @* Extracto del comentario *@
-                    @if (tipo == "comentario" && !string.IsNullOrWhiteSpace(ev.ExtractoComentario))
-                    {
-                      <p class="mb-1 small text-muted fst-italic border-start border-3 ps-2 perfil-actividad-cita">@ev.ExtractoComentario</p>
-                    }
-                    <p class="mb-0 text-muted extra-small">@ev.Momento</p>
-                  </div>
-                </li>
-              }
-            </ul>
+            <p class="fw-semibold mb-3">Actividad en tus prompts</p>
+            @if (Model.Actividad.Count == 0)
+            {
+              <p class="text-muted mb-0">Sin actividad reciente.</p>
+            }
+            else
+            {
+              <ul class="list-unstyled mb-0 perfil-actividad-list">
+                @foreach (var ev in Model.Actividad)
+                {
+                  var tipo = ev.Tipo.ToLowerInvariant();
+                  var icono = tipo == "guardado" ? "bi-bookmark-fill" : tipo == "like" ? "bi-heart-fill" : "bi-chat-dots-fill";
+                  var verbo = tipo == "guardado" ? " guardó " : tipo == "like" ? " dio me gusta a " : " comentó en ";
+                  <li class="perfil-actividad-item d-flex gap-3 py-3 border-bottom border-light">
+                    <div class="perfil-actividad-icon rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                      <i class="bi @icono text-white small"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <p class="mb-1 small">
+                        <span class="fw-semibold">@ev.ActorNombre</span>
+                        <span class="text-muted">@@@ev.ActorUserName</span>@verbo<span class="fw-semibold">«@ev.TituloPrompt»</span>
+                      </p>
+                      @if (tipo == "comentario" && !string.IsNullOrWhiteSpace(ev.ExtractoComentario))
+                      {
+                        <p class="mb-1 small text-muted fst-italic border-start border-3 ps-2 perfil-actividad-cita">@ev.ExtractoComentario</p>
+                      }
+                      <p class="mb-0 text-muted extra-small">@ev.Momento</p>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
           }
-
-          @* Si no hay prompts para mostrar *@
           else if (prompts.Count == 0)
           {
-            <p class="text-muted mb-0">No hay prompts para mostrar en esta sección.</p>
+            <p class="text-muted mb-0">No hay prompts en esta sección.</p>
           }
-          @* Tarjetas + formulario de comentarios POST PublicarComentarioPerfil *@
           else
           {
-
             <div class="row g-3">
               @foreach (var p in prompts)
               {
-                @* Tarjeta de prompt *@
-                <div class="col-12 col-md-6 prompt-item">
-                  <div class="card border-0 shadow-sm rounded-4 prompt-card perfil-mock-card h-100">
+                <div class="col-12 col-md-6">
+                  <div class="card border-0 shadow-sm rounded-4 prompt-card h-100">
                     <div class="card-body p-3">
-                      <div class="d-flex align-items-center mb-3">
-                        <a asp-controller="Home" asp-action="Perfil" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
-                          <div class="avatar-circle text-white fw-semibold" style="background-color:@p.CircleColor">@p.InitialsProfile</div>
-                          <div>
-                            <p class="mb-0 fw-semibold small">@p.AuthorName</p>
-                            <p class="mb-0 text-muted extra-small">@@@p.Username</p>
-                          </div>
-                        </a>
-                        @* Autor del prompt *@
-                      </div>
-                      @* Título del prompt *@
-                      <h3 class="h6 fw-semibold mb-2">@p.Title</h3>
-                      @* Categoría del prompt *@
-                      <span class="badge categoria-badge rounded-pill px-2 py-1 small">@p.Category</span>
-                      @* Contenido del prompt *@
-                      <div class="prompt-content rounded-3 p-2 my-2">
-                        <p class="mb-0 text-muted small lh-base">@p.Prompt</p>
-                      </div>
-                      @* Pie de tarjeta: likes, comentarios, guardados *@
-                      <div class="d-flex align-items-center justify-content-between pt-3 border-top flex-wrap gap-2">
-                        @* Likes *@
-                        <div class="d-flex align-items-center gap-3 text-muted">
-                          <span class="stat-icon-btn like-btn@((bool)ViewBag.EnLikeados ? " liked" : "")">
-                            <i class="bi @((bool)ViewBag.EnLikeados ? "bi-heart-fill" : "bi-heart")"></i>
-                            <span>@p.Likes</span>
-                          </span>
-                          @* Comentarios *@
-                          <button type="button" class="stat-icon-btn js-perfil-toggle-comments"
-                                  data-target="comments-@p.Id" title="Ver comentarios">
-                            <i class="bi bi-chat"></i>
-                            <span>@p.Comments</span>
-                          </button>
-                          @* Guardados *@
-                          <span class="stat-icon-btn save-btn@((bool)ViewBag.EnGuardados ? " saved" : "")">
-                            <i class="bi @((bool)ViewBag.EnGuardados ? "bi-bookmark-fill" : "bi-bookmark")"></i>
-                            <span>@p.Saves</span>
-                          </span>
+                      <div class="d-flex align-items-center gap-2 mb-3">
+                        <div class="avatar-circle text-white fw-semibold" style="background-color:@p.CircleColor">@p.InitialsProfile</div>
+                        <div>
+                          <p class="mb-0 fw-semibold small">@p.AuthorName</p>
+                          <p class="mb-0 text-muted extra-small">@@@p.Username</p>
                         </div>
-                        <span class="text-muted extra-small">@p.CreatedAt</span>
                       </div>
-                      @* Formulario de comentarios POST PublicarComentarioPerfil *@
+                      <h3 class="h6 fw-semibold mb-2">@p.Title</h3>
+                      <span class="badge categoria-badge rounded-pill px-2 py-1 small">@p.Category</span>
+                      <div class="prompt-content rounded-3 p-2 my-2">
+                        <p class="mb-0 text-muted small">@p.Prompt</p>
+                      </div>
+                      <div class="d-flex justify-content-between pt-3 border-top flex-wrap gap-2 text-muted">
+                        <div class="d-flex gap-3">
+                          <button type="button" class="stat-icon-btn like-btn@(enLikeados ? " liked" : "")" aria-pressed="@(enLikeados ? "true" : "false")">
+                            <i class="bi @(enLikeados ? "bi-heart-fill" : "bi-heart")"></i><span class="like-count">@p.Likes</span>
+                          </button>
+                          <button type="button" class="stat-icon-btn js-perfil-toggle-comments" data-target="comments-@p.Id" aria-expanded="false">
+                            <i class="bi bi-chat"></i><span class="comment-count">@p.Comments</span>
+                          </button>
+                          <button type="button" class="stat-icon-btn save-btn@(enGuardados ? " saved" : "")" aria-pressed="@(enGuardados ? "true" : "false")">
+                            <i class="bi @(enGuardados ? "bi-bookmark-fill" : "bi-bookmark")"></i><span class="save-count">@p.Saves</span>
+                          </button>
+                        </div>
+                        <span class="extra-small">@p.CreatedAt</span>
+                      </div>
                       <div class="comment-section mt-4 pt-4 border-top" id="comments-@p.Id">
-                        <form asp-controller="Home" asp-action="PublicarComentarioPerfil" method="post" class="d-flex gap-2 flex-wrap align-items-start">
+                        <form asp-action="PublicarComentarioPerfil" method="post" class="d-flex gap-2 flex-wrap">
                           <input type="hidden" name="promptId" value="@p.Id" />
-                          <input type="hidden" name="returnTab" value="@ViewBag.Tab" />
-                          <input type="text" name="comentario" class="form-control rounded-4 comment-input flex-grow-1"
-                                 placeholder="Añadir un comentario..." maxlength="500" />
+                          <input type="hidden" name="returnTab" value="@tab" />
+                          <input type="text" name="comentario" class="form-control rounded-4 comment-input flex-grow-1" placeholder="Añadir un comentario..." maxlength="500" />
                           <button type="submit" class="btn publicar-btn rounded-4 px-3">Publicar</button>
                         </form>
-                        @* Mensaje de respeto y construcción *@
-                        <p class="text-muted extra-small mt-2 mb-0">Sé respetuoso y constructivo en tus comentarios</p>
                       </div>
                     </div>
                   </div>
@@ -250,7 +191,6 @@
 
         </div>
       </div>
-
     </div>
   </div>
 </div>
