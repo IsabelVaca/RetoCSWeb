@@ -3,8 +3,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // API Flask de perfil (base de datos).
+// Add services to the container.
 
 const string perfilApiUrl = "http://127.0.0.1:8001";
+
 
 
 

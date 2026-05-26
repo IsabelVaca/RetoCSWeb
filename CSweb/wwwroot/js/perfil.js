@@ -2,6 +2,7 @@
     "use strict";
 
     // Validación en el navegador antes del POST EditarPerfil.
+    // Funciones para la vista previa de la foto y el mandado de comentarios
     var CFG = {
         maxNombre: 80,
         maxUser: 30,
@@ -9,6 +10,7 @@
         exts: [".jpg", ".jpeg", ".png", ".gif"],
         userRx: /^[a-zA-Z0-9_]+$/
     };
+
 
     document.addEventListener("DOMContentLoaded", function () {
         var page = document.querySelector(".perfil-page");
