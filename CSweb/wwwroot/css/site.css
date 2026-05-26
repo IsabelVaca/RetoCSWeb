@@ -20,6 +20,7 @@ html {
 body {
   margin-bottom: 60px;
   color: #132f38;
+  background: transparent;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -100,6 +101,7 @@ body {
 
 .main-content {
     padding-top: 90px;
+    background: transparent;
 }
 
 /* toolbar */
@@ -621,4 +623,25 @@ textarea.form-control-custom {
     width: 160px;
     height: 160px;
     object-fit: cover;
+}
+
+.toolbar-home {
+    background-color: rgba(255,255,255,0.10) !important;
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+.toolbar-home * {
+    color: white !important;
+}
+
+.toolbar-home-profile {
+    background-color: rgba(255,255,255,0.10) !important;
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    color: white !important;
+}
+
+.toolbar-home-profile * {
+    color: white !important;
 }

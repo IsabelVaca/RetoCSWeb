@@ -4,6 +4,7 @@
 
 @{
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    bool isHomePage = currentAction == "Index";
 
     string ActiveClass(string action)
     {if (currentAction == action)
@@ -47,7 +48,8 @@
             <div class="col-8 d-flex justify-content-center">
                 @* navbar estabelce el contenedor como barra de nav *@
                 @* navbar-ex.. hace q los iconos no se distorsionen al hacer la pag chiquita *@
-                <nav class="navbar navbar-expand bg-white bg-opacity-75 border rounded-pill shadow px-3 py-2 toolbar-blur">
+                <nav class="navbar navbar-expand border rounded-pill shadow px-3 py-2 toolbar-blur
+                @(isHomePage ? "toolbar-home" : "bg-white bg-opacity-75")">
                     <div class="navbar-nav flex-row gap-1">
 
                         <a class="nav-link toolbar-icon rounded-pill px-3 @ActiveClass("Index")"
@@ -99,7 +101,8 @@
             @* columna derecha: perfil *@
             <div class="col-2 d-none d-md-flex justify-content-end">
                 <div class="dropdown">
-                    <button class="btn bg-white bg-opacity-75 border rounded-pill shadow d-flex align-items-center gap-2 px-3 py-2 toolbar-blur"
+                    <button class="btn border rounded-pill shadow d-flex align-items-center gap-2 px-3 py-2 toolbar-blur
+                    @(isHomePage ? "toolbar-home-profile" : "bg-white bg-opacity-75")"
                             type="button"
                             data-bs-toggle="dropdown"
                             aria-expanded="false">
@@ -108,7 +111,9 @@
                             SC
                         </span>
 
-                        <span class="fw-semibold small">Jimmy</span>
+                        <span class="fw-semibold small @(isHomePage ? "text-white" : "")">
+                            Jimmy
+                        </span>
                     </button>
 
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2">
