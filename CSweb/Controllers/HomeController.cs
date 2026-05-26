@@ -3,7 +3,12 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using CSweb.Models;
+<<<<<<< Updated upstream
 
+=======
+using CSweb.Services;
+//.
+>>>>>>> Stashed changes
 namespace CSweb.Controllers;
 
 public class HomeController : Controller

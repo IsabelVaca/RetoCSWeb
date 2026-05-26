@@ -1,7 +1,20 @@
 
 (function () {
     "use strict";
+<<<<<<< Updated upstream
     // Funciones para la vista previa de la foto y el mandado de comentarios
+=======
+
+    // Validación en el navegador antes del POST EditarPerfil..
+    var CFG = {
+        maxNombre: 80,
+        maxUser: 30,
+        maxBio: 500,
+        exts: [".jpg", ".jpeg", ".png", ".gif"],
+        userRx: /^[a-zA-Z0-9_]+$/
+    };
+
+>>>>>>> Stashed changes
     document.addEventListener("DOMContentLoaded", function () {
         var pagina = document.querySelector(".perfil-page");
         if (!pagina) return;

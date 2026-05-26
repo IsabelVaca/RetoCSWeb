@@ -1,6 +1,6 @@
 namespace CSweb.Models
 {
-    //Este modelo es el que se usa para el formulario de edición del perfil
+    //Este modelo es el que se usa para el formulario de edición del perfil..
     public class PerfilEditarViewModel
     {
         // datos del perfil que se pueden editar

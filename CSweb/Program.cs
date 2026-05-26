@@ -4,7 +4,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 builder.Logging.AddFilter("Microsoft.AspNetCore", LogLevel.Warning);
 
+<<<<<<< Updated upstream
 // Add services to the container.
+=======
+
+// API Flask de perfil (base de datos)..
+
+const string perfilApiUrl = "http://127.0.0.1:8001";
+
+
+
+>>>>>>> Stashed changes
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 
