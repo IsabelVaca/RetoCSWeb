@@ -1,4 +1,4 @@
-// Configuración en código; no se usa appsettings.json para datos de la app.
+// Configuración en código; no se usa appsettings.json para datos de la app..
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.SetMinimumLevel(LogLevel.Information);
