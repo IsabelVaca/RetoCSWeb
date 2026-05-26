@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace CSweb.Services;
 
-// Cliente HTTP hacia Flask: GET devuelve listas; PUT devuelve true/false.
+// Implementa IPerfilApiService: ejecuta GET/PUT a Flask (http://127.0.0.1:8001).
 public class PerfilApiService : IPerfilApiService
 {
     private readonly HttpClient _http;

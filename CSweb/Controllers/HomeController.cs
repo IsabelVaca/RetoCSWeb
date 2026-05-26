@@ -367,7 +367,7 @@ public class HomeController : Controller
         return View(prompt);
     }
 
-    // ========== PERFIL (API Flask :8001) ==========
+    // PERFIL
     private static readonly (string Id, string Icon, string Label)[] PerfilTabsNav =
     {
         ("publicados", "bi-grid-3x3-gap", "Publicados"),
@@ -387,7 +387,7 @@ public class HomeController : Controller
         return View(vm);
     }
 
-    // Guardar cambios (POST → API)
+    // Formulario HTML = POST a MVC. Actualizar datos/foto = PUT a Flask (PerfilApiService.PutAsync).
     [HttpPost]
     public async Task<IActionResult> EditarPerfil(PerfilEditarViewModel model)
     {
@@ -419,6 +419,7 @@ public class HomeController : Controller
         return RedirectToAction(nameof(Perfil));
     }
 
+    // Solo POST al MVC (sin API aún). No confundir con PUT de editar perfil.
     [HttpPost]
     public IActionResult PublicarComentarioPerfil(int promptId, string comentario, string? returnTab)
     {
