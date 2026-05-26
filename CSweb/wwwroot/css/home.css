@@ -1,5 +1,5 @@
 .home-page {
-    min-height: 100vh;
+    min-height: 100%;
     background: radial-gradient(circle at top left, #1d6586 0%, #104B70 45%,
     #0b3552 100%);
     background-attachment: fixed;
@@ -29,7 +29,7 @@
 }
 .home-title {
     color: white;
-    font-size: 4rem;
+    font-size: 18px;
     font-weight: 700;
 
     display: flex;
@@ -39,10 +39,10 @@
 }
 .home-subtitle {
     color: rgba(255,255,255,0.9);
-    font-size: 1.1rem;
+    font-size: 20px;
 }
 .home-background {
-    min-height: 100vh;
+    min-height: 100%;
 
     background: linear-gradient(
         135deg,
