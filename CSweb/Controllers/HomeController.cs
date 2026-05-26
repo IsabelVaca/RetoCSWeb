@@ -389,7 +389,7 @@ public class HomeController : Controller
         return View(vm);
     }
 
-    // Formulario HTML = POST a MVC. Actualizar datos/foto = PUT a Flask (PerfilApiService.PutAsync).
+    // POST al MVC; un solo PUT /perfil/{id} a Flask (datos + rutaFotoPerfil).
     [HttpPost]
     public async Task<IActionResult> EditarPerfil(PerfilEditarViewModel model)
     {
@@ -404,14 +404,16 @@ public class HomeController : Controller
             model.RutaFotoPerfil = await GuardarFotoEnDisco(model.FotoPerfil, id);
             if (model.RutaFotoPerfil == null)
                 ModelState.AddModelError(nameof(model.FotoPerfil), "Extensiones NO permitidas. Usa .jpg, .jpeg, .png, .gif.");
-            else if (!await _perfilApi.ActualizarFotoAsync(id, RutaParaApi(model.RutaFotoPerfil)))
-                ModelState.AddModelError(string.Empty, "No se pudo actualizar la foto en la API.");
         }
 
         if (!ModelState.IsValid)
             return await VistaEditar(id, model);
 
-        if (!await _perfilApi.ActualizarPerfilAsync(id, model.Nombre, model.UserName, model.Bio ?? ""))
+        var rutaApi = string.IsNullOrWhiteSpace(model.RutaFotoPerfil)
+            ? ""
+            : RutaParaApi(model.RutaFotoPerfil);
+
+        if (!await _perfilApi.ActualizarPerfilAsync(id, model.Nombre, model.UserName, model.Bio ?? "", rutaApi))
         {
             ModelState.AddModelError(string.Empty, "No se pudo actualizar el perfil en la API.");
             return await VistaEditar(id, model);

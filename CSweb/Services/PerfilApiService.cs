@@ -3,9 +3,7 @@ using System.Text.Json;
 
 namespace CSweb.Services;
 
-// Implementa IPerfilApiService: ejecuta GET/PUT a Flask (http://127.0.0.1:8001).
-// Implementa IPerfilApiService: ejecuta GET/PUT a Flask (http://127.0.0.1:8001)..
-
+// Implementa IPerfilApiService: GET/PUT a Flask (http://127.0.0.1:8001).
 public class PerfilApiService : IPerfilApiService
 {
     private readonly HttpClient _http;
@@ -17,12 +15,16 @@ public class PerfilApiService : IPerfilApiService
 
     public PerfilApiService(HttpClient http) => _http = http;
 
+    // GET /perfil/{id} o GET /perfil/{id}/{tab}
     public async Task<(List<Dictionary<string, object>> cabecera, List<Dictionary<string, object>> contenido)> ObtenerPerfilAsync(
         int idUsuario, string tab, int idUsuarioActual)
     {
         try
         {
-            var url = $"perfil/{idUsuario}/{Uri.EscapeDataString(tab)}?idUsuarioActual={idUsuarioActual}";
+            var ruta = string.IsNullOrWhiteSpace(tab) || tab.Equals("publicados", StringComparison.OrdinalIgnoreCase)
+                ? $"perfil/{idUsuario}"
+                : $"perfil/{idUsuario}/{Uri.EscapeDataString(tab)}";
+            var url = $"{ruta}?idUsuarioActual={idUsuarioActual}";
             var resp = await _http.GetAsync(url);
             if (!resp.IsSuccessStatusCode)
                 return ([], []);
@@ -40,11 +42,10 @@ public class PerfilApiService : IPerfilApiService
         }
     }
 
-    public Task<bool> ActualizarPerfilAsync(int idUsuario, string nombre, string userName, string bio) =>
-        PutAsync($"perfil/{idUsuario}", new { nombre, userName, bio });
-
-    public Task<bool> ActualizarFotoAsync(int idUsuario, string rutaFotoPerfil) =>
-        PutAsync($"perfil/{idUsuario}/foto", new { rutaFotoPerfil });
+    // PUT /perfil/{id} — Flask acepta rutaFotoPerfil en el mismo JSON.
+    public Task<bool> ActualizarPerfilAsync(
+        int idUsuario, string nombre, string userName, string bio, string? rutaFotoPerfil) =>
+        PutAsync($"perfil/{idUsuario}", new { nombre, userName, bio, rutaFotoPerfil = rutaFotoPerfil ?? "" });
 
     private async Task<bool> PutAsync(string ruta, object cuerpo)
     {
