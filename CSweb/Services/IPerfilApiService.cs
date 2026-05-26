@@ -1,7 +1,7 @@
 namespace CSweb.Services;
 
 // Plantilla: define qué llamadas HTTP hace el perfil contra Flask (GET perfil, PUT datos, PUT foto).
-// PerfilApiService es la clase que las implementa de verdad..
+// PerfilApiService es la clase que las implementa de verdad.
 public interface IPerfilApiService
 {
     Task<(List<Dictionary<string, object>> cabecera, List<Dictionary<string, object>> contenido)> ObtenerPerfilAsync(
