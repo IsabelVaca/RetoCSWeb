@@ -37,7 +37,7 @@
     @* toolbar *@
     @* position.. al dar scroll no se mueve el toolbar *@
     @* w-100.. pone el ancho de la pagina al 100% *@
-    <header class="position-fixed w-100 tb-container">
+    <header class="position-fixed w-100 tb-container" style="background-color: ;">
     <div class="container-fluid px-4 py-3">
         <div class="row align-items-center">
 
@@ -48,8 +48,7 @@
             <div class="col-8 d-flex justify-content-center">
                 @* navbar estabelce el contenedor como barra de nav *@
                 @* navbar-ex.. hace q los iconos no se distorsionen al hacer la pag chiquita *@
-                <nav class="navbar navbar-expand border rounded-pill shadow px-3 py-2 toolbar-blur
-                @(isHomePage ? "toolbar-home" : "bg-white bg-opacity-75")">
+                <nav class="navbar navbar-expand bg-white bg-opacity-75 border rounded-pill shadow px-3 py-2 toolbar-blur">
                     <div class="navbar-nav flex-row gap-1">
 
                         <a class="nav-link toolbar-icon rounded-pill px-3 @ActiveClass("Index")"

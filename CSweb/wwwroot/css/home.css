@@ -1,16 +1,31 @@
 .home-page {
-min-height: 100vh;
-background: radial-gradient(circle at top left, #1d6586 0%, #104B70 45%,
-#0b3552 100%);
-background-attachment: fixed;
-padding-bottom: 60px;
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, #1d6586 0%, #104B70 45%,
+    #0b3552 100%);
+    background-attachment: fixed;
+    padding-bottom: 60px;
 }
 .home-hero {
-padding-top: 90px;
+    padding-top: 200px;
 }
 .home-logo {
-width: 380px;
-max-width: 100%;
+    width: 380px;
+    max-width: 100%;
+}
+.home-body {
+    background: radial-gradient(
+        circle at top left,
+        #1d6586 0%,
+        #104B70 45%,
+        #0b3552 100%
+    );
+
+    background-attachment: fixed;
+}
+
+.home-body header,
+.home-body footer {
+    background: transparent;
 }
 .home-title {
     color: white;
@@ -23,8 +38,8 @@ max-width: 100%;
     gap: 16px;
 }
 .home-subtitle {
-color: rgba(255,255,255,0.9);
-font-size: 1.1rem;
+    color: rgba(255,255,255,0.9);
+    font-size: 1.1rem;
 }
 .home-background {
     min-height: 100vh;
@@ -152,16 +167,19 @@ object-fit: cover;
     max-height: 620px;
     overflow-y: auto;
     padding-right: 6px;
+    scroll-behavior: smooth;
 }
 .home-trend-list {
     max-height: 320px;
     overflow-y: auto;
     padding-right: 4px;
+    scroll-behavior: smooth;
 }
 .home-creator-list {
     max-height: 340px;
     overflow-y: auto;
     padding-right: 4px;
+    scroll-behavior: smooth;
 }
 .home-activity-list::-webkit-scrollbar,
 .home-trend-list::-webkit-scrollbar,
