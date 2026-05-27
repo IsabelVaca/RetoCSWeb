@@ -99,8 +99,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-.main-content {
-    padding-top: 90px; 
+.main-content { 
     background: transparent;
 }
 
@@ -499,6 +498,12 @@ textarea.form-control-custom {
    perfil — estilos de la página Perfil (Home/Perfil).
    site.css ya se carga en _Layout; escribe aquí las reglas que uses.
    ============================================================================= */
+
+/* Espacio bajo el toolbar fijo (solo vista Perfil, sin tocar _Layout) */
+.perfil-page-spacer {
+    padding-top: 8rem;
+    padding-bottom: 3rem;
+}
 
 /* Tipografía más compacta que Bootstrap display-4 / fs-5 */
 .perfil-page .perfil-nombre {

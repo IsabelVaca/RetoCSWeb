@@ -7,7 +7,7 @@
         maxNombre: 80,
         maxUser: 30,
         maxBio: 500,
-        exts: [".jpg", ".jpeg", ".png", ".gif"],
+        exts: [".jpg", ".jpeg", ".png"],
         userRx: /^[a-zA-Z0-9_]+$/
     };
 
@@ -108,7 +108,7 @@
         });
     }
 
-    // Like y guardar: cambio visual local (aún sin endpoint).
+    // Like y guardar: cambio visual local.
     function onClickTarjeta(ev) {
         var like = ev.target.closest(".like-btn");
         if (like) { toggleStat(like, "liked", "bi-heart", "bi-heart-fill", ".like-count"); return; }

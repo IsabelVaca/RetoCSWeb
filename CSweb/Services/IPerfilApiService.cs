@@ -6,7 +6,7 @@ public interface IPerfilApiService
     Task<(List<Dictionary<string, object>> cabecera, List<Dictionary<string, object>> contenido)> ObtenerPerfilAsync(
         int idUsuario, string tab, int idUsuarioActual);
 
-    // PUT /perfil/{id} — nombre, userName, bio y rutaFotoPerfil (opcional) en un solo cuerpo.
+    // PUT /perfil/{id}
     Task<bool> ActualizarPerfilAsync(
         int idUsuario, string nombre, string userName, string bio, string? rutaFotoPerfil);
 }

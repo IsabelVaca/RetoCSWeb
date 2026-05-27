@@ -467,7 +467,7 @@ public class HomeController : Controller
         {
             model.RutaFotoPerfil = await GuardarFotoEnDisco(model.FotoPerfil, id);
             if (model.RutaFotoPerfil == null)
-                ModelState.AddModelError(nameof(model.FotoPerfil), "Extensiones NO permitidas. Usa .jpg, .jpeg, .png, .gif.");
+                ModelState.AddModelError(nameof(model.FotoPerfil), "Extensiones NO permitidas. Usa .jpg, .jpeg o .png.");
         }
 
         if (!ModelState.IsValid)
@@ -628,7 +628,7 @@ public class HomeController : Controller
     private async Task<string?> GuardarFotoEnDisco(IFormFile foto, int id)
     {
         var ext = Path.GetExtension(foto.FileName).ToLowerInvariant();
-        if (!".jpg,.jpeg,.png,.gif".Split(',').Contains(ext)) return null;
+        if (!".jpg,.jpeg,.png".Split(',').Contains(ext)) return null;
         var dir = Path.Combine(_env.WebRootPath, "Imagenes", "fotosperfil");
         Directory.CreateDirectory(dir);
         var nombre = $"{Guid.NewGuid()}_FotoUsuario{id}{ext}";
