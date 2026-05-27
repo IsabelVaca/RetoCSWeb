@@ -1,70 +1,51 @@
 var builder = WebApplication.CreateBuilder(args);
 
-
-
 // API Flask de perfil (base de datos).
 // Add services to the container.
 
 const string perfilApiUrl = "http://127.0.0.1:8001";
 
-
-
-
 builder.Services.AddControllersWithViews();
-
 builder.Services.AddSession();
 
-
-
 builder.Services.AddHttpClient<CSweb.Services.IPerfilApiService, CSweb.Services.PerfilApiService>(client =>
-
 {
-
     client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
-
 });
 
+builder.Services.AddHttpClient<CSweb.Services.IHomeApiService, CSweb.Services.HomeApiService>()
+    .ConfigurePrimaryHttpMessageHandler(() =>
+        new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        });
 
-
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+{
+    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+});
+   
 var app = builder.Build();
 
-
-
 if (!app.Environment.IsDevelopment())
-
 {
-
     app.UseExceptionHandler("/Home/Error");
-
     app.UseHsts();
-
 }
-
-
 
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-
-
 app.UseRouting();
-
-
 
 app.UseSession();
 
 app.UseAuthorization();
 
-
-
 app.MapControllerRoute(
-
     name: "default",
-
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-
-
 app.Run();
 
