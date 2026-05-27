@@ -2,7 +2,7 @@ using CSweb.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// API Flask de perfil (base de datos).
+// API Flask de perfil (home usa URLs en HomeApiService, puerto 8001).
 const string perfilApiUrl = "http://127.0.0.1:8001";
 
 builder.Services.AddControllersWithViews();
@@ -19,6 +19,9 @@ builder.Services.AddHttpClient<CSweb.Services.IPerfilApiService, CSweb.Services.
 {
     client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
 });
+
+// Solo registro DI; HomeApiService usa URLs absolutas en el puerto 8001.
+builder.Services.AddHttpClient<CSweb.Services.IHomeApiService, CSweb.Services.HomeApiService>();
 
 var app = builder.Build();
 
