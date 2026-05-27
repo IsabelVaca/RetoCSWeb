@@ -78,15 +78,8 @@ public class HomeController : Controller
     public IActionResult Ranking(string query)
     {
 
-        //simula sesión
-        var usuarioId = HttpContext.Session.GetInt32("UsuarioId");
-
-        //asigna id
-        if (usuarioId == null)
-        {
-            HttpContext.Session.SetInt32("UsuarioId", 1);
-            usuarioId = 1;
-        }
+        // Id de sesión tras login hardcodeado.
+        var usuarioId = IdSesion();
 
         //lista de ranking
         var lista_usuarios_ranking = new List<UsuarioRankingViewModel>
@@ -387,9 +380,40 @@ public class HomeController : Controller
         return View();
     }
 
+    // Pantalla de login (primera página al iniciar la app).
+    [HttpGet]
     public IActionResult Login()
     {
-        return View();
+        if (HttpContext.Session.GetInt32(AuthSessionKeys.Logeado) == 1)
+            return RedirectToAction(nameof(Index));
+
+        return View(new LoginViewModel());
+    }
+
+    // Valida admin1 / 12345 y entra como el usuario con id 1.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult IniciarSesion(LoginViewModel model)
+    {
+        var usuarioOk = string.Equals(model.Usuario?.Trim(), LoginViewModel.UsuarioDemo, StringComparison.OrdinalIgnoreCase);
+        var passwordOk = model.Password == LoginViewModel.PasswordDemo;
+
+        if (usuarioOk && passwordOk)
+        {
+            HttpContext.Session.SetInt32(AuthSessionKeys.Logeado, 1);
+            HttpContext.Session.SetInt32(AuthSessionKeys.UsuarioId, LoginViewModel.UsuarioPorDefectoId);
+            return RedirectToAction(nameof(Index));
+        }
+
+        model.Error = "Usuario o contraseña incorrectos.";
+        return View(nameof(Login), model);
+    }
+
+    // Cierra sesión y vuelve al login.
+    public IActionResult Logout()
+    {
+        HttpContext.Session.Clear();
+        return RedirectToAction(nameof(Login));
     }
 
     public IActionResult Crear()
@@ -474,9 +498,7 @@ public class HomeController : Controller
     // --- Sesión y pestaña ---
     private int IdSesion()
     {
-        if (HttpContext.Session.GetInt32("UsuarioId") is int id) return id;
-        HttpContext.Session.SetInt32("UsuarioId", 1);
-        return 1;
+        return HttpContext.Session.GetInt32(AuthSessionKeys.UsuarioId) ?? LoginViewModel.UsuarioPorDefectoId;
     }
 
     private static string Tab(string? t) =>

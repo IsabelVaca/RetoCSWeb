@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace CSweb.Services;
 
-// Implementa IPerfilApiService: GET/PUT a Flask (http://127.0.0.1:8001).
+// Implementa IPerfilApiService: GET/PUT
 public class PerfilApiService : IPerfilApiService
 {
     private readonly HttpClient _http;
