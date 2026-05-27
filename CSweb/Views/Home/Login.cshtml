@@ -1,0 +1,51 @@
+@model CSweb.Models.LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Iniciar sesión";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Cobalt Legends</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="login-page px-3">
+        <div class="login-card p-4 p-md-5">
+            <div class="text-center mb-4">
+                <img src="~/Imagenes/LogoWhirlpool.png" alt="Cobalt Legends" class="login-logo mb-3" />
+                <h1 class="h4 fw-bold text-dark mb-1">Iniciar sesión</h1>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Error))
+            {
+                <div class="alert alert-danger py-2 small" role="alert">
+                    @Model.Error
+                </div>
+            }
+
+            <form asp-action="IniciarSesion" asp-controller="Home" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="Usuario" class="form-label small fw-semibold">Usuario</label>
+                    <input asp-for="Usuario" class="form-control rounded-3" autocomplete="username" />
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label small fw-semibold">Contraseña</label>
+                    <input asp-for="Password" type="password" class="form-control rounded-3" autocomplete="current-password" />
+                </div>
+
+                <button type="submit" class="btn login-btn text-white w-100 py-2 fw-semibold">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

@@ -13,12 +13,13 @@ public class UsuarioNavbarViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var id = HttpContext.Session.GetInt32("UsuarioId") ?? 1;
-        if (HttpContext.Session.GetInt32("UsuarioId") is null)
-            HttpContext.Session.SetInt32("UsuarioId", id);
+        // Sin login no hay id; el middleware ya redirige a Login.
+        var id = HttpContext.Session.GetInt32(AuthSessionKeys.UsuarioId);
+        if (id is not int usuarioId)
+            return View(new UsuarioNavbarViewModel());
 
         var vm = new UsuarioNavbarViewModel();
-        var (cab, _) = await _perfilApi.ObtenerPerfilAsync(id, "publicados", id);
+        var (cab, _) = await _perfilApi.ObtenerPerfilAsync(usuarioId, "publicados", usuarioId);
         if (cab.Count > 0)
         {
             var user = Leer(cab[0], "userName");
