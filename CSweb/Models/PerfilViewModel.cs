@@ -1,5 +1,5 @@
 namespace CSweb.Models
-//Este modelo es el que se usa para el perfil del usuario..
+//Este modelo es el que se usa para el perfil del usuario
 {
     public class PerfilViewModel
     {

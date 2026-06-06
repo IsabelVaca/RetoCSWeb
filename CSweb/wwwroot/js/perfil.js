@@ -17,8 +17,6 @@
         if (!page) return;
 
         initEditar();
-        initComentarios();
-        page.addEventListener("click", onClickTarjeta);
     });
 
     function initEditar() {
@@ -108,7 +106,7 @@
         });
     }
 
-    // Like y guardar: cambio visual local (aún sin endpoint).
+    // Like y guardar: cambio visual local.
     function onClickTarjeta(ev) {
         var like = ev.target.closest(".like-btn");
         if (like) { toggleStat(like, "liked", "bi-heart", "bi-heart-fill", ".like-count"); return; }

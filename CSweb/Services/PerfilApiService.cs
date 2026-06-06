@@ -42,7 +42,7 @@ public class PerfilApiService : IPerfilApiService
         }
     }
 
-    // PUT /perfil/{id} — Flask acepta rutaFotoPerfil en el mismo JSON.
+    // PUT /perfil/{id} — Flask acepta rutaFotoPerfil en el mismo JSON
     public Task<bool> ActualizarPerfilAsync(
         int idUsuario, string nombre, string userName, string bio, string? rutaFotoPerfil) =>
         PutAsync($"perfil/{idUsuario}", new { nombre, userName, bio, rutaFotoPerfil = rutaFotoPerfil ?? "" });

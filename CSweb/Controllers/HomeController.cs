@@ -453,7 +453,7 @@ public class HomeController : Controller
         return View(vm);
     }
 
-    // POST al MVC; un solo PUT /perfil/{id} a Flask (datos + rutaFotoPerfil).
+    // POST al MVC; un solo PUT /perfil/{id} a Flask (datos y rutaFotoPerfil)
     [HttpPost]
     public async Task<IActionResult> EditarPerfil(PerfilEditarViewModel model)
     {
@@ -487,7 +487,7 @@ public class HomeController : Controller
         return RedirectToAction(nameof(Perfil));
     }
 
-    // Solo POST al MVC (sin API aún). No confundir con PUT de editar perfil.
+    // Solo POST al MVC
     [HttpPost]
     public IActionResult PublicarComentarioPerfil(int promptId, string comentario, string? returnTab)
     {
@@ -495,7 +495,7 @@ public class HomeController : Controller
         return RedirectToAction(nameof(Perfil), new { tab = string.IsNullOrWhiteSpace(returnTab) ? "publicados" : returnTab });
     }
 
-    // --- Sesión y pestaña ---
+    // Sesión y pestaña
     private int IdSesion()
     {
         return HttpContext.Session.GetInt32(AuthSessionKeys.UsuarioId) ?? LoginViewModel.UsuarioPorDefectoId;
@@ -504,7 +504,8 @@ public class HomeController : Controller
     private static string Tab(string? t) =>
         string.IsNullOrWhiteSpace(t) || t.Equals("publicaciones", StringComparison.OrdinalIgnoreCase) ? "publicados" : t;
 
-    // --- Llamada API y ViewBag ---
+    // Llamada API y ViewBag 
+
     private async Task<PerfilViewModel> CargarDesdeApi(int id, string tab)
     {
         var (cab, lista) = await _perfilApi.ObtenerPerfilAsync(id, tab, id);
@@ -549,7 +550,6 @@ public class HomeController : Controller
         (ruta.Trim().StartsWith('/') ? ruta.Trim() : "/" + ruta.Trim())
             .Replace("/Imagenes/", "/imagenes/", StringComparison.OrdinalIgnoreCase);
 
-    // --- JSON de la API → Models ---
     private static PerfilViewModel AModelo(Dictionary<string, object> cab, List<Dictionary<string, object>> lista, string tab)
     {
         var p = new PerfilViewModel
@@ -619,7 +619,7 @@ public class HomeController : Controller
     private static string MensajeComentario(string t)
     {
         if (string.IsNullOrWhiteSpace(t)) return "Escribe un comentario antes de publicar.";
-        string[] malas = ["palabra1", "palabra2", "palabra3", "palabra4", "palabra5", "palabra6", "palabra7", "palabra8", "palabra9", "palabra10"];
+        string[] malas = [];
         return malas.Any(p => t.Contains(p, StringComparison.OrdinalIgnoreCase))
             ? "Tu comentario contiene palabras no permitidas. Por favor, sé respetuoso."
             : "¡Comentario publicado con éxito!";
