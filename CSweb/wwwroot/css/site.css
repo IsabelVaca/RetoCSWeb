@@ -502,22 +502,34 @@ textarea.form-control-custom {
     padding-bottom: 3rem;
 }
 
-/* Tipografía más compacta que Bootstrap display-4 / fs-5 */
+/* Cabecera del perfil: nombre + botón Editar en la misma fila */
+.perfil-page .perfil-info-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 250px;
+}
+
+.perfil-page .perfil-header-top {
+    width: 100%;
+    margin-right: 0;
+}
+
+/* Tipografía ampliada para ocupar mejor el espacio del encabezado */
 .perfil-page .perfil-nombre {
-    font-size: 2.25rem;
-    line-height: 1.2;
-    margin-bottom: 0.35rem;
+    font-size: clamp(2.5rem, 4vw, 3.25rem);
+    line-height: 1.15;
 }
 
 .perfil-page .perfil-handle {
-    font-size: 1.2rem;
-    line-height: 1.4;
+    font-size: clamp(1.35rem, 2.2vw, 1.65rem);
+    line-height: 1.35;
 }
 
 .perfil-page .perfil-bio {
-    font-size: 1.15rem;
-    line-height: 1.55;
-    max-width: 42rem;
+    font-size: clamp(1.3rem, 2vw, 1.55rem);
+    line-height: 1.5;
+    max-width: 100%;
 }
 
 /* Correo bajo la bio: mismo tono que el handle, enlace discreto */
@@ -537,7 +549,7 @@ textarea.form-control-custom {
 }
 
 .perfil-page .perfil-stats {
-    font-size: 1.1rem;
+    font-size: clamp(1.25rem, 1.8vw, 1.5rem);
     line-height: 1.45;
 }
 
@@ -678,8 +690,132 @@ textarea.form-control-custom {
     background: linear-gradient(145deg, #104b70, #0e536e);
 }
 
+/* Evita desbordes horizontales en textos largos de la lista */
+.perfil-page .perfil-actividad-texto {
+    min-width: 0;
+    overflow-wrap: break-word;
+}
+
 .perfil-page .perfil-actividad-cita {
     border-color: #9dbdd1 !important;
+}
+
+/* Panel Actividad: sin overflow que bloquee position: sticky */
+.perfil-page .perfil-tab-panel--actividad {
+    overflow: visible;
+}
+
+/* Layout Actividad: lista 70% + imagen 30% */
+.perfil-page .perfil-actividad-layout {
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    gap: 2rem;
+    align-items: stretch;
+    overflow: visible;
+}
+
+/* Estilo base compartido por ambos contenedores */
+.perfil-page .perfil-actividad-contenedor {
+    border: 1px solid rgba(16, 75, 112, 0.12);
+    border-radius: 1rem;
+    background-color: #fff;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 4px 14px rgba(16, 75, 112, 0.07);
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    height: min(58vh, 440px);
+    overflow: hidden;
+}
+
+/* Contenedor lista: altura fija igual a la imagen; scroll solo del texto */
+.perfil-page .perfil-actividad-contenedor-lista {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1rem 1rem 1.25rem;
+    min-height: 0;
+}
+
+.perfil-page .perfil-actividad-lista-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    /* Altura explícita: contenedor menos padding vertical */
+    height: calc(min(58vh, 440px) - 2rem);
+    max-height: calc(min(58vh, 440px) - 2rem);
+    overflow-y: scroll;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    padding-right: 0.35rem;
+}
+
+/* Scrollbar discreta en la lista de actividad */
+.perfil-page .perfil-actividad-lista-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.perfil-page .perfil-actividad-lista-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(16, 75, 112, 0.25);
+    border-radius: 999px;
+}
+
+/* Contenedor imagen: más ancho, mínimo padding lateral */
+.perfil-page .perfil-actividad-contenedor-imagen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.35rem;
+}
+
+/* Imagen ancha: llena el contenedor derecho */
+.perfil-page .perfil-actividad-robot {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: calc(min(58vh, 440px) - 1rem);
+    object-fit: contain;
+}
+
+/* Tablet: altura automática, scroll de página normal */
+@media (max-width: 991.98px) {
+    .perfil-page .perfil-actividad-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .perfil-page .perfil-actividad-contenedor {
+        height: auto;
+        overflow: visible;
+    }
+
+    .perfil-page .perfil-actividad-lista-scroll {
+        overflow-y: visible;
+        padding-right: 0;
+    }
+
+    .perfil-page .perfil-actividad-contenedor-imagen {
+        order: 2;
+        max-width: 480px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .perfil-page .perfil-actividad-robot {
+        max-height: min(58vh, 440px);
+    }
+}
+
+/* Móvil: padding más compacto */
+@media (max-width: 575.98px) {
+    .perfil-page .perfil-actividad-contenedor {
+        padding: 1rem 1.15rem;
+    }
+
+    .perfil-page .perfil-actividad-contenedor-imagen {
+        max-width: 100%;
+    }
 }
 
 /* Botón para abrir el formulario de editar perfil */
@@ -688,7 +824,9 @@ textarea.form-control-custom {
     color: #fff;
     border: none;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.1rem;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
 }
 
 .perfil-page .perfil-btn-editar:hover {

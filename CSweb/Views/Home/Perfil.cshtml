@@ -16,24 +16,31 @@
           <img src="@ViewBag.UrlFotoCabecera" alt="Foto de perfil" class="img-fluid rounded-4 perfil-foto-principal"
                style="width: 250px; height: 250px; object-fit: cover;">
         </div>
-        <div class="col-md-9 ps-4">
-          <h1 class="perfil-nombre fw-bold mb-2">@Model.Nombre</h1>
+        <div class="col-md-9 ps-md-4 perfil-info-col">
+          @* Fila nombre + Editar: grid Bootstrap para alinear el botón arriba a la derecha *@
+          <div class="row align-items-center g-2 perfil-header-top mb-2">
+            <div class="col">
+              <h1 class="perfil-nombre fw-bold mb-0">@Model.Nombre</h1>
+            </div>
+            @if (!enEditar)
+            {
+              <div class="col-auto">
+                <a class="btn rounded-pill px-4 perfil-btn-editar" asp-action="Perfil" asp-route-tab="editar">
+                  <i class="bi bi-pencil-square me-1"></i> Editar
+                </a>
+              </div>
+            }
+          </div>
           <p class="perfil-handle text-muted mb-3">@@@Model.UserName</p>
-          <p class="perfil-bio text-dark mb-2">@Model.Bio</p>
-          <p class="perfil-stats mb-2"><span class="fw-bold">@Model.NumeroPublicaciones</span> <span class="text-muted">publicados</span></p>
+          <p class="perfil-bio text-dark mb-3">@Model.Bio</p>
+          <p class="perfil-stats mb-0"><span class="fw-bold">@Model.NumeroPublicaciones</span> <span class="text-muted">publicados</span></p>
           @if (TempData["PerfilError"] is string err)
           {
-            <div class="alert alert-danger py-2 px-3 small mb-2">@err</div>
+            <div class="alert alert-danger py-2 px-3 small mb-2 mt-3">@err</div>
           }
           @if (TempData["PerfilMensaje"] is string ok)
           {
-            <div class="alert alert-success py-2 px-3 small mb-2">@ok</div>
-          }
-          @if (!enEditar)
-          {
-            <a class="btn btn-sm rounded-pill px-3 perfil-btn-editar" asp-action="Perfil" asp-route-tab="editar">
-              <i class="bi bi-pencil-square me-1"></i> Editar
-            </a>
+            <div class="alert alert-success py-2 px-3 small mb-2 mt-3">@ok</div>
           }
         </div>
       </div>
@@ -56,7 +63,7 @@
       }
 
       <div class="row@(enEditar ? " mt-4" : "")">
-        <div class="col-12 perfil-tab-panel rounded-3 border bg-white bg-opacity-75 p-4">
+        <div class="col-12 perfil-tab-panel rounded-3 border bg-white bg-opacity-75 p-4@(enActividad ? " perfil-tab-panel--actividad" : "")">
 
           @if (enEditar)
           {
@@ -102,37 +109,50 @@
           else if (enActividad)
           {
             <p class="fw-semibold mb-3 perfil-seccion-titulo">Actividad en tus prompts</p>
-            @if (Model.Actividad.Count == 0)
-            {
-              <p class="text-muted mb-0">Sin actividad reciente.</p>
-            }
-            else
-            {
-              <ul class="list-unstyled mb-0 perfil-actividad-list">
-                @foreach (var ev in Model.Actividad)
-                {
-                  var tipo = ev.Tipo.ToLowerInvariant();
-                  var icono = tipo == "guardado" ? "bi-bookmark-fill" : tipo == "like" ? "bi-heart-fill" : "bi-chat-dots-fill";
-                  var verbo = tipo == "guardado" ? " guardó " : tipo == "like" ? " dio me gusta a " : " comentó en ";
-                  <li class="perfil-actividad-item d-flex gap-3 py-3 border-bottom border-light">
-                    <div class="perfil-actividad-icon rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
-                      <i class="bi @icono text-white small"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                      <p class="mb-1 small">
-                        <span class="fw-semibold">@ev.ActorNombre</span>
-                        <span class="text-muted">@@@ev.ActorUserName</span>@verbo<span class="fw-semibold">«@ev.TituloPrompt»</span>
-                      </p>
-                      @if (tipo == "comentario" && !string.IsNullOrWhiteSpace(ev.ExtractoComentario))
+            @* Dos contenedores: lista (izquierda) e ilustración (derecha) *@
+            <div class="perfil-actividad-layout">
+              <section class="perfil-actividad-contenedor perfil-actividad-contenedor-lista">
+                @* Scroll interno: el contenedor mantiene la misma altura que la imagen *@
+                <div class="perfil-actividad-lista-scroll" tabindex="0" role="region" aria-label="Lista de actividad">
+                  @if (Model.Actividad.Count == 0)
+                  {
+                    <p class="text-muted mb-0">Sin actividad reciente.</p>
+                  }
+                  else
+                  {
+                    <ul class="list-unstyled mb-0 perfil-actividad-list">
+                      @foreach (var ev in Model.Actividad)
                       {
-                        <p class="mb-1 small text-muted fst-italic border-start border-3 ps-2 perfil-actividad-cita">@ev.ExtractoComentario</p>
+                        var tipo = ev.Tipo.ToLowerInvariant();
+                        var icono = tipo == "guardado" ? "bi-bookmark-fill" : tipo == "like" ? "bi-heart-fill" : "bi-chat-dots-fill";
+                        var verbo = tipo == "guardado" ? " guardó " : tipo == "like" ? " dio me gusta a " : " comentó en ";
+                        <li class="perfil-actividad-item d-flex gap-3 py-3 border-bottom border-light">
+                          <div class="perfil-actividad-icon rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
+                            <i class="bi @icono text-white small"></i>
+                          </div>
+                          <div class="flex-grow-1 perfil-actividad-texto">
+                            <p class="mb-1 small">
+                              <span class="fw-semibold">@ev.ActorNombre</span>
+                              <span class="text-muted">@@@ev.ActorUserName</span>@verbo<span class="fw-semibold">«@ev.TituloPrompt»</span>
+                            </p>
+                            @if (tipo == "comentario" && !string.IsNullOrWhiteSpace(ev.ExtractoComentario))
+                            {
+                              <p class="mb-1 small text-muted fst-italic border-start border-3 ps-2 perfil-actividad-cita">@ev.ExtractoComentario</p>
+                            }
+                            <p class="mb-0 text-muted extra-small">@ev.Momento</p>
+                          </div>
+                        </li>
                       }
-                      <p class="mb-0 text-muted extra-small">@ev.Momento</p>
-                    </div>
-                  </li>
-                }
-              </ul>
-            }
+                    </ul>
+                  }
+                </div>
+              </section>
+              <section class="perfil-actividad-contenedor perfil-actividad-contenedor-imagen" aria-label="Ilustración de la comunidad">
+                <img src="~/Imagenes/robotIA/RobotSinfondo.png"
+                     alt="Robot IA"
+                     class="perfil-actividad-robot" />
+              </section>
+            </div>
           }
           else if (prompts.Count == 0)
           {
