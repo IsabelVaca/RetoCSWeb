@@ -8,7 +8,7 @@
     var enEditar = (bool)ViewBag.EnEditar;
     var enActividad = (bool)ViewBag.EnActividad;
 }
-<div class="py-5">
+<div class="perfil-page-spacer">
   <div class="container perfil-page">
     <div class="mb-5">
       <div class="row align-items-start">
@@ -34,21 +34,23 @@
           <p class="perfil-handle text-muted mb-3">@@@Model.UserName</p>
           <p class="perfil-bio text-dark mb-3">@Model.Bio</p>
           <p class="perfil-stats mb-0"><span class="fw-bold">@Model.NumeroPublicaciones</span> <span class="text-muted">publicados</span></p>
-          @if (TempData["PerfilError"] is string err)
-          {
-            <div class="alert alert-danger py-2 px-3 small mb-2 mt-3">@err</div>
-          }
-          @if (TempData["PerfilMensaje"] is string ok)
-          {
-            <div class="alert alert-success py-2 px-3 small mb-2 mt-3">@ok</div>
-          }
         </div>
       </div>
 
+      @* Mensajes fuera de la cabecera para no romper la barra de pestañas *@
+      @if (TempData["PerfilError"] is string err)
+      {
+        <div class="alert alert-danger py-2 px-3 small mb-0 mt-3">@err</div>
+      }
+      @if (TempData["PerfilMensaje"] is string ok)
+      {
+        <div class="alert alert-success py-2 px-3 small mb-0 mt-3">@ok</div>
+      }
+
       @if (!enEditar)
       {
-        <div class="row mt-4 mb-3">
-          <div class="col-12 d-flex justify-content-center justify-content-md-start">
+        <div class="row perfil-tabs-row mt-4 mb-3">
+          <div class="col-12">
             <nav class="navbar navbar-expand bg-white bg-opacity-75 border rounded-pill shadow px-2 py-2 toolbar-blur perfil-pubs-nav">
               <div class="navbar-nav flex-row flex-wrap gap-1">
                 @foreach (var t in (IEnumerable<(string Id, string Icon, string Label)>)ViewBag.TabsNav!)

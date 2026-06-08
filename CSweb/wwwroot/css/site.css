@@ -498,8 +498,14 @@ textarea.form-control-custom {
 
 /* Espacio bajo el toolbar fijo (solo vista Perfil, sin tocar _Layout) */
 .perfil-page-spacer {
-    padding-top: 8rem;
+    padding-top: 7.5rem;
     padding-bottom: 3rem;
+}
+
+@media (max-width: 767.98px) {
+    .perfil-page-spacer {
+        padding-top: 8.5rem;
+    }
 }
 
 /* Cabecera del perfil: nombre + botón Editar en la misma fila */
@@ -515,9 +521,9 @@ textarea.form-control-custom {
     margin-right: 0;
 }
 
-/* Tipografía ampliada para ocupar mejor el espacio del encabezado */
+/* Nombre del perfil: un poco más compacto */
 .perfil-page .perfil-nombre {
-    font-size: clamp(2.5rem, 4vw, 3.25rem);
+    font-size: clamp(2.1rem, 3.4vw, 2.75rem);
     line-height: 1.15;
 }
 
@@ -526,9 +532,10 @@ textarea.form-control-custom {
     line-height: 1.35;
 }
 
+/* Bio: tamaño intermedio (entre nombre y versión anterior) */
 .perfil-page .perfil-bio {
-    font-size: clamp(1.3rem, 2vw, 1.55rem);
-    line-height: 1.5;
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    line-height: 1.45;
     max-width: 100%;
 }
 
@@ -553,9 +560,22 @@ textarea.form-control-custom {
     line-height: 1.45;
 }
 
-/* Barra de pestañas del perfil: reutiliza .toolbar-icon / .active del Layout */
+/* Barra de pestañas del perfil: ancho completo y separada de la cabecera */
+.perfil-page .perfil-tabs-row {
+    margin-top: 1.5rem !important;
+}
+
 .perfil-page .perfil-pubs-nav {
+    width: 100%;
     max-width: 100%;
+    justify-content: flex-start;
+}
+
+.perfil-page .perfil-pubs-nav .navbar-nav {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.35rem;
 }
 
 /* Con texto en cada pestaña, no forzar el ancho mínimo del icono del header */
