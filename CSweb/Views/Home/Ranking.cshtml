@@ -1,16 +1,20 @@
 @model CSweb.Models.RankingViewModel
 
-
 @{
     ViewData["Title"] = "Home Page";
+    var esLikes = Model.TipoRanking == "likes";
 }
 
-<div class="container-fluid">
-        <div class="row">
-            <div class="col-9 mb-5">
+<div class="container" style="padding-top:80px;">
+
+    <div class="row">
+
+        <div class="col-9 mb-4">
 
             @using (Html.BeginForm("Ranking", "Home", FormMethod.Get))
-    {
+            {
+                <input type="hidden" name="tipo" value="@Model.TipoRanking" />
+
                 <div class="search-container position-relative d-flex align-items-center">
                    
                         <svg class="search-icon" ...></svg>
@@ -18,39 +22,48 @@
                         <input class="form-control search-input ps-5"
                             type="search"
                             name="query"
-                            placeholder="Buscar usuarios...">
+                            placeholder="Buscar usuarios..."
+                            value="@Model.Query">
 
                         <button class=" btn btn-search ms-2" type="submit">
                             Buscar
                         </button>
                     
                 </div>
-                }
+            }
+
+            <div class="d-flex align-items-center gap-2 flex-wrap mt-3 mb-4">
+                <a href="@Url.Action("Ranking", "Home", new { query = Model.Query, tipo = "general" })"
+                   class="btn filtro-btn rounded-pill px-4 py-2 shadow-sm@(esLikes ? "" : " active")">
+                    Ranking general
+                </a>
+                <a href="@Url.Action("Ranking", "Home", new { query = Model.Query, tipo = "likes" })"
+                   class="btn filtro-btn rounded-pill px-4 py-2 shadow-sm@(esLikes ? " active" : "")">
+                    Ranking por likes
+                </a>
             </div>
-        </div>
-    </div>
 
-
-<div class="container">
-
-
-    <div class="row">
-
-        <!--contenedor donde va la lista de usuarios-->
-        <div class ="container col-9">
+            <!--contenedor donde va la lista de usuarios-->
 
             @if(Model?.Usuarios != null)
             {
                 @for(int i = 0; i < Model.Usuarios.Count && i < 100; i++)
                 {
-                    <div class="card p-3 mb-3 border-light rounded-4 shadow-sm" style="background: #81b3d7;">
+                    <div class="card p-3 mb-3 border-light rounded-4 shadow-sm" style="background: #9ec4e0;">
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center gap-3 w-100">
-                                <img src="@Model.Usuarios[i].imagen" class="rounded-circle" width="80">
+                                <img src="@Model.Usuarios[i].RutaFotoPerfil" class="rounded-circle" width="80">
                                 
-                                <h5 class="mb-0 ">@Model.Usuarios[i].userName</h5>
+                                <h5 class="mb-0 ">@Model.Usuarios[i].UserName</h5>
                                  
-                                <h6 class="mb-0 ">@Model.Usuarios[i].Puntos puntos</h6>
+                                @if (esLikes)
+                                {
+                                    <h6 class="mb-0 ">@Model.Usuarios[i].TotalLikes likes</h6>
+                                }
+                                else
+                                {
+                                    <h6 class="mb-0 ">@Model.Usuarios[i].Puntos puntos</h6>
+                                }
                                     
                                 
                                 <span class=" ms-auto fs-6">TOP @Model.Usuarios[i].Posicion</span>
@@ -66,10 +79,17 @@
                 <div class="card p-2 mb-2 border-light rounded-4 shadow-sm" style="background: #d4a574 ;">
                     <div class="d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center gap-3 w-100">
-                            <img src="@Model.UsuarioActual.imagen" class="rounded-circle" width="80">
+                            <img src="@Model.UsuarioActual.RutaFotoPerfil" class="rounded-circle" width="80">
                             
-                            <h5 class="mb-0">@Model.UsuarioActual.userName (TÚ)</h5>
-                            <h6 class="mb-0">@Model.UsuarioActual.Puntos puntos</h6>
+                            <h5 class="mb-0">@Model.UsuarioActual.UserName (TÚ)</h5>
+                            @if (esLikes)
+                            {
+                                <h6 class="mb-0">@Model.UsuarioActual.TotalLikes likes</h6>
+                            }
+                            else
+                            {
+                                <h6 class="mb-0">@Model.UsuarioActual.Puntos puntos</h6>
+                            }
                             
                             <span class=" ms-auto fs-6">TOP @Model.UsuarioActual.Posicion</span>
                         </div>
@@ -102,11 +122,58 @@
                             <path d="m8 0 1.669.864 1.858.282.842 1.68 1.337 1.32L13.4 6l.306 1.854-1.337 1.32-.842 1.68-1.858.282L8 12l-1.669-.864-1.858-.282-.842-1.68-1.337-1.32L2.6 6l-.306-1.854 1.337-1.32.842-1.68L6.331.864z"/>
                             <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1z"/>
                         </svg>
-                        <h6 class="text-white mb-0 ">@Model.UsuarioActual.Puntos Puntos</h6>
+                        @if (esLikes)
+                        {
+                            <h6 class="text-white mb-0 ">@Model.UsuarioActual.TotalLikes Likes</h6>
+                        }
+                        else
+                        {
+                            <h6 class="text-white mb-0 ">@Model.UsuarioActual.Puntos Puntos</h6>
+                        }
                     </div>
+                    @if (!esLikes && Model.DetallePuntosUsuario != null)
+                    {
+                        <button class="btn btn-light w-100 mb-3 fw-semibold"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#detallePuntos"
+                                aria-expanded="false"
+                                aria-controls="detallePuntos">
+                            Ver detalle
+                        </button>
+
+                        <div class="collapse w-100" id="detallePuntos">
+                            <div class="p-3 rounded-3 text-white" style="background: #4980acaf;">
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Likes recibidos</span>
+                                    <strong>@Model.DetallePuntosUsuario.LikesRecibidos × 10 = @Model.DetallePuntosUsuario.PuntosLikes pts</strong>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Guardados</span>
+                                    <strong>@Model.DetallePuntosUsuario.GuardadosRecibidos × 10 = @Model.DetallePuntosUsuario.PuntosGuardados pts</strong>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Comentarios</span>
+                                    <strong>@Model.DetallePuntosUsuario.ComentariosRecibidos × 10 = @Model.DetallePuntosUsuario.PuntosComentarios pts</strong>
+                                </div>
+
+                                <hr class="border-light" />
+
+                                <div class="d-flex justify-content-between">
+                                    <span>Total</span>
+                                    <strong>@Model.DetallePuntosUsuario.TotalPuntos pts</strong>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
 
+            @if (!esLikes)
+            {
             <!--contenedor con guia de puntos -->
 
             <div class ="card  p-4 mb-4 border-light rounded-4  shadow-sm d-flex flex-column align-items-start" style= "background: #2E6080">
@@ -121,16 +188,7 @@
                 <!--Contenedor de elementos -->
                 <div class="d-flex flex-column">
 
-                    <!--publicar prompts -->
-                    <div class=" d-flex align-items-center   mb-3 gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" class="bi bi-lightbulb mr-2" viewBox="0 0 16 16">
-                                <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1"/>
-                            </svg>
-                            <div >
-                                <p class="text-white mb-0 small">Publicar un prompt</p>
-                                <small class=" text-white mt-0">+10 puntos</small>
-                            </div>       
-                    </div>
+                   
 
                       <!--Recibir un comentario -->
                     <div class=" d-flex align-items-center   mb-3 gap-2">
@@ -165,7 +223,9 @@
                             </div>       
                     </div>
 
+                </div>
             </div>
+            }
         </div>
     </div>
 </div>

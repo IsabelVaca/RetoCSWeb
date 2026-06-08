@@ -12,19 +12,27 @@ public class HomeController : Controller
     private readonly IWebHostEnvironment _env;
     private readonly IPerfilApiService _perfilApi;
     private readonly IHomeApiService _homeApi;
+    private readonly IExplorarApiService _explorarApi;
+    private readonly IUsuarioAPIService _usuarioService;
+    private readonly IPromptService _promptService;
 
     public HomeController(
         ILogger<HomeController> logger,
         IWebHostEnvironment env,
         IPerfilApiService perfilApi,
-        IHomeApiService homeApi)
+        IHomeApiService homeApi,
+        IExplorarApiService explorarApi,
+        IUsuarioAPIService usuarioService,
+        IPromptService promptService)
     {
         _logger = logger;
         _env = env;
         _perfilApi = perfilApi;
-        _homeApi   = homeApi;  
+        _homeApi = homeApi;
+        _explorarApi = explorarApi;
+        _usuarioService = usuarioService;
+        _promptService = promptService;
     }
-
     public async Task<IActionResult> Index(string query)
     {
         var taskActivos    = _homeApi.ObtenerUsuariosActivos();
@@ -74,312 +82,215 @@ public class HomeController : Controller
         return View();
     }
 
+//RANKING
     [HttpGet]
-    public IActionResult Ranking(string query)
+public async Task<IActionResult> Ranking(string query, string tipo = "general")
+{
+    if (string.IsNullOrWhiteSpace(tipo))
     {
+        tipo = "general";
+    }
 
-        // Id de sesión tras login hardcodeado.
-        var usuarioId = IdSesion();
+    int usuarioId = IdSesion();
 
-        //lista de ranking
-        var lista_usuarios_ranking = new List<UsuarioRankingViewModel>
-        {
+    List<UsuarioRankingViewModel> listaRanking;
 
-            new UsuarioRankingViewModel { Id = 1, userName = "CodeMaster21", Puntos = 950, imagen = "/Imagenes/1.png" },
-            new UsuarioRankingViewModel { Id = 2, userName = "PixelNinja", Puntos = 870, imagen = "/Imagenes/2.png" },
-            new UsuarioRankingViewModel { Id = 3, userName = "DevQueen", Puntos = 990, imagen = "/Imagenes/3.png" },
-            new UsuarioRankingViewModel { Id = 4, userName = "BugHunter", Puntos = 760, imagen = "/Imagenes/4.png" },
-            new UsuarioRankingViewModel { Id = 5, userName = "ScriptWizard", Puntos = 820, imagen = "/Imagenes/5.png" },
-            new UsuarioRankingViewModel { Id = 6, userName = "DarkCoder", Puntos = 910, imagen = "/Imagenes/6.png" },
-            new UsuarioRankingViewModel { Id = 7, userName = "FrontendHero", Puntos = 880, imagen = "/Imagenes/1.png" },
-            new UsuarioRankingViewModel { Id = 8, userName = "BackendBoss", Puntos = 940, imagen = "/Imagenes/2.png" },
-            new UsuarioRankingViewModel { Id = 9, userName = "AIExplorer", Puntos = 970, imagen = "/Imagenes/3.png" },
-            new UsuarioRankingViewModel { Id = 10, userName = "DataKnight", Puntos = 860, imagen = "/Imagenes/4.png" },
-            new UsuarioRankingViewModel { Id = 11, userName = "CyberSamurai", Puntos = 830, imagen = "/Imagenes/5.png" },
-            new UsuarioRankingViewModel { Id = 12, userName = "CloudRider", Puntos = 780, imagen = "/Imagenes/6.png" },
-            new UsuarioRankingViewModel { Id = 13, userName = "NeonDev", Puntos = 920, imagen = "/Imagenes/1.png" },
-            new UsuarioRankingViewModel { Id = 14, userName = "LogicLover", Puntos = 800, imagen = "/Imagenes/2.png" },
-            new UsuarioRankingViewModel { Id = 15, userName = "StackOverlord", Puntos = 890, imagen = "/Imagenes/3.png" },
-            new UsuarioRankingViewModel { Id = 16, userName = "BinaryBeast", Puntos = 840, imagen = "/Imagenes/4.png" },
-            new UsuarioRankingViewModel { Id = 17, userName = "QuantumCoder", Puntos = 960, imagen = "/Imagenes/5.png" },
-            new UsuarioRankingViewModel { Id = 18, userName = "DebugDiva", Puntos = 870, imagen = "/Imagenes/6.png" },
-            new UsuarioRankingViewModel { Id = 19, userName = "CodePhantom", Puntos = 910, imagen = "/Imagenes/1.png" },
-            new UsuarioRankingViewModel { Id = 20, userName = "AlgoMaster", Puntos = 930, imagen = "/Imagenes/2.png" }
+    if (tipo == "likes")
+    {
+        listaRanking = await _usuarioService.ObtenerRankingLikes();
 
-        };
-        //ordenar lista
-        var lista_ranking_ordenada = lista_usuarios_ranking.OrderByDescending(u => u.Puntos).ToList();
+        listaRanking = listaRanking
+            .OrderByDescending(u => u.TotalLikes)
+            .ToList();
+    }
+    else
+    {
+        listaRanking = await _usuarioService.ObtenerUsuariosRanking();
 
-        //dar posiciones 
-        for (int i = 0; i < lista_ranking_ordenada.Count; i++)
-        {
-            lista_ranking_ordenada[i].Posicion = i + 1;
-        }
+        listaRanking = listaRanking
+            .OrderByDescending(u => u.Puntos)
+            .ToList();
+    }
 
-       
-        //objeto usuario actual, obtenido de la lista ordenada con pos
-        var usuario_actual = lista_ranking_ordenada
-            .FirstOrDefault(u => u.Id == usuarioId);
+    for (int i = 0; i < listaRanking.Count; i++)
+    {
+        listaRanking[i].Posicion = i + 1;
+    }
 
-        //si el usuario escribió algo en searchbar
-        if (!string.IsNullOrEmpty(query))
-        {
-            lista_ranking_ordenada = lista_ranking_ordenada
-                .Where(u => u.userName.ToLower().Contains(query.ToLower()))
-                .ToList();
-        }
+    var usuarioActual = listaRanking
+        .FirstOrDefault(u => u.IDUsuario == usuarioId);
 
-       
-        //regresar datos a la vista 
-        var datos = new RankingViewModel
-        {
-            Usuarios = lista_ranking_ordenada,
-            UsuarioActual = usuario_actual
-        };
+    DetallePuntosViewModel? detallePuntos = null;
+
+    if (usuarioActual != null && tipo == "general")
+    {
+        detallePuntos = await _usuarioService.ObtenerDetallePuntosUsuario(usuarioActual.IDUsuario);
+    }
+
+    if (!string.IsNullOrWhiteSpace(query))
+    {
+        string texto = query.ToLower();
+
+        listaRanking = listaRanking
+            .Where(u =>
+                u.UserName.ToLower().Contains(texto) ||
+                u.NombreUsuario.ToLower().Contains(texto)
+            )
+            .ToList();
+    }
+
+    var datos = new RankingViewModel
+    {
+        Usuarios = listaRanking,
+        UsuarioActual = usuarioActual,
+        DetallePuntosUsuario = detallePuntos,
+        TipoRanking = tipo,
+        Query = query ?? ""
+    };
+
     return View(datos);
-}    
+}
+//FIN RANKING
 
-//explorar
+//EXPLORAR
 
-    [HttpGet] // Consulta y muestra prompts
-        public IActionResult Explorar(string query, string filtro)
+    [HttpGet]
+    public async Task<IActionResult> Explorar(string query, string filtro)
+    {
+        // si no seleccionó filtro, se usa Tendencias
+        if (string.IsNullOrEmpty(filtro))
         {
-            // si el usuario no ha seleccionado filtro, por defecto se muestran los más recientes
-            if (string.IsNullOrEmpty(filtro))
+            filtro = "Tendencias";
+        }
+
+        // usuario actual simulado
+        int idUsuario = 1;
+
+        // se llama al API y llama al SP_ObtenerPromptsExplorar
+        // y despues regresa los prompts ordenados según el filtro
+        var listaPrompts = await _explorarApi.ObtenerPromptsAsync(
+            query ?? "",
+            idUsuario,
+            filtro
+        );
+
+        if (listaPrompts == null) //usa lista vacia 
+        {
+            listaPrompts = new List<PromptViewModel>();
+        }
+
+        // calcula tiempop relativo
+        foreach (var prompt in listaPrompts)
+        {
+            prompt.CreatedAt = CalcularTiempoRelativo(prompt.FechaPublicacion);
+        }
+
+        //crea modelo de pagina 
+        var datos = new ExplorarViewModel
+        {
+            Prompts = listaPrompts,
+            Filters = new List<string>
             {
-                filtro = "Recientes";
-            }
-
-            // fecha actual para calcular los prompts recientes
-            DateTime ahora = DateTime.Now;
-
-            // lista simulando la base de datos
-            var listaPrompts = new List<PromptViewModel>
-            {
-                new PromptViewModel
-                {
-                    Id = 1,
-                    IdUsuario = 2,
-                    Title = "Optimización de Producción en Whirlpool",
-                    Prompt = "Genera una propuesta para mejorar la eficiencia en una línea de producción de electrodomésticos Whirlpool, considerando reducción de tiempos muertos, control de calidad, seguridad operativa y uso eficiente de materiales.",
-                    AuthorName = "Alex Rivera",
-                    Username = "alexr",
-                    InitialsProfile = "AR",
-                    CircleColor = "#F7AA63",
-                    Category = "Producción",
-                    Likes = 234,
-                    Comments = 45,
-                    Saves = 128,
-                    CreatedAt = "hace 2 horas",
-                    FechaPublicacion = ahora.AddHours(-2)
-                },
-
-                new PromptViewModel
-                {
-                    Id = 2,
-                    IdUsuario = 5,
-                    Title = "Campaña de Marketing para Whirlpool",
-                    Prompt = "Crea una campaña de marketing digital para promocionar una nueva línea de refrigeradores Whirlpool, destacando ahorro de energía, diseño moderno, tecnología inteligente y confianza de marca.",
-                    AuthorName = "Sarah Chen",
-                    Username = "sarahc",
-                    InitialsProfile = "SC",
-                    CircleColor = "#009FDC",
-                    Category = "Marketing",
-                    Likes = 189,
-                    Comments = 32,
-                    Saves = 95,
-                    CreatedAt = "hace 5 horas",
-                    FechaPublicacion = ahora.AddHours(-5)
-                },
-
-                new PromptViewModel
-                {
-                    Id = 3,
-                    IdUsuario = 10,
-                    Title = "Atención al Cliente Whirlpool",
-                    Prompt = "Diseña un protocolo de atención al cliente para usuarios de productos Whirlpool que incluya seguimiento de garantías, solución de fallas comunes, tiempos de respuesta y mejora de la experiencia postventa.",
-                    AuthorName = "Jimmy Stone",
-                    Username = "jimmys",
-                    InitialsProfile = "JS",
-                    CircleColor = "#8E44AD",
-                    Category = "Servicio al Cliente",
-                    Likes = 145,
-                    Comments = 18,
-                    Saves = 70,
-                    CreatedAt = "hace 1 día",
-                    FechaPublicacion = ahora.AddDays(-1)
-                },
-
-                new PromptViewModel
-                {
-                    Id = 4,
-                    IdUsuario = 20,
-                    Title = "Análisis Financiero para Whirlpool",
-                    Prompt = "Elabora un análisis financiero básico para Whirlpool considerando costos de producción, ventas proyectadas, margen de ganancia, presupuesto por departamento y estrategias para reducir gastos operativos.",
-                    AuthorName = "Mia Torres",
-                    Username = "miat",
-                    InitialsProfile = "MT",
-                    CircleColor = "#2ECC71",
-                    Category = "Finanzas",
-                    Likes = 98,
-                    Comments = 12,
-                    Saves = 41,
-                    CreatedAt = "hace 2 días",
-                    FechaPublicacion = ahora.AddDays(-2)
-                },
-
-                new PromptViewModel
-                {
-                    Id = 5,
-                    IdUsuario = 25,
-                    Title = "Recursos Humanos en Whirlpool",
-                    Prompt = "Propón una estrategia de recursos humanos para mejorar la capacitación, motivación, comunicación interna y retención de empleados en los diferentes departamentos de Whirlpool.",
-                    AuthorName = "Luna Park",
-                    Username = "lunap",
-                    InitialsProfile = "LP",
-                    CircleColor = "#E67E22",
-                    Category = "Recursos Humanos",
-                    Likes = 500,
-                    Comments = 60,
-                    Saves = 210,
-                    CreatedAt = "hace 30 minutos",
-                    FechaPublicacion = ahora.AddMinutes(-30)
-                },
-
-                new PromptViewModel
-                {
-                    Id = 6,
-                    IdUsuario = 30,
-                    Title = "Innovación Tecnológica Whirlpool",
-                    Prompt = "Genera ideas de innovación tecnológica para productos Whirlpool, incluyendo sensores inteligentes, conectividad IoT, ahorro energético, mantenimiento predictivo y funciones automatizadas para mejorar la experiencia del usuario.",
-                    AuthorName = "Emma López",
-                    Username = "emmal",
-                    InitialsProfile = "EL",
-                    CircleColor = "#104B70",
-                    Category = "Innovación y Tecnología",
-                    Likes = 410,
-                    Comments = 72,
-                    Saves = 300,
-                    CreatedAt = "hace 10 horas",
-                    FechaPublicacion = ahora.AddHours(-10)
-                }
-            };
-
-            // lista de filtros
-            var listaFiltros = new List<string>
-            {
+                "Tendencias",
                 "Recientes",
                 "Más Gustados",
                 "Más Guardados"
-            };
+            },
+            Query = query ?? "",
+            FiltroActivo = filtro
+        };
 
-            //serach bars, buscar prompts por texto
-            //  GET porque solo consulta/filtra información
-            if (!string.IsNullOrEmpty(query))
-            {
-                string queryMinuscula = query.ToLower();
-
-                listaPrompts = listaPrompts
-                    .Where(p =>
-                        p.Title.ToLower().Contains(queryMinuscula) ||
-                        p.Prompt.ToLower().Contains(queryMinuscula) ||
-                        p.Category.ToLower().Contains(queryMinuscula) ||
-                        p.AuthorName.ToLower().Contains(queryMinuscula) ||
-                        p.Username.ToLower().Contains(queryMinuscula)
-                    )
-                    .ToList();
-            }
-
-            // aplicar filtro seleccionado
-            if (filtro == "Recientes")
-            {
-                // muestra solo los prompts publicados en las últimas 24 horas
-                listaPrompts = listaPrompts
-                    .Where(p => p.FechaPublicacion >= ahora.AddHours(-24))
-                    .OrderByDescending(p => p.FechaPublicacion)
-                    .ToList();
-            }
-            else if (filtro == "Más Gustados")
-            {
-                // ordena de mayor a menor por likes
-                listaPrompts = listaPrompts
-                    .OrderByDescending(p => p.Likes)
-                    .ToList();
-            }
-            else if (filtro == "Más Guardados")
-            {
-                // ordena de mayor a menor por guardados
-                listaPrompts = listaPrompts
-                    .OrderByDescending(p => p.Saves)
-                    .ToList();
-            }
-            else
-            {
-                // Filtro desconocido o URLs antiguas: mismo criterio que "Recientes" (por fecha)
-                listaPrompts = listaPrompts
-                    .Where(p => p.FechaPublicacion >= ahora.AddHours(-24))
-                    .OrderByDescending(p => p.FechaPublicacion)
-                    .ToList();
-            }
-            var datos = new ExplorarViewModel
-            {
-                Prompts = listaPrompts,
-                Filters = listaFiltros,
-                Query = query,
-                FiltroActivo = filtro
-            };
-
-            return View(datos);
-        }
-
-        [HttpPost]
-        public IActionResult PublicarComentario(int promptId, string comentario)
-        {
-            var malasPalabras = new List<string>
-            {
-                "palabra1", "palabra2", "palabra3", "palabra4", "palabra5",
-                "palabra6", "palabra7", "palabra8", "palabra9", "palabra10"
-            };
-
-            if (string.IsNullOrWhiteSpace(comentario))
-            {
-                return Json(new
-                {
-                    ok = false,
-                    mensaje = "Escribe un comentario antes de publicar."
-                });
-            }
-
-            string comentarioMinusculas = comentario.ToLower();
-
-            bool tieneMalasPalabras = malasPalabras.Any(palabra =>
-                comentarioMinusculas.Contains(palabra)
-            );
-
-            if (tieneMalasPalabras)
-            {
-                return Json(new
-                {
-                    ok = false,
-                    //no cumple con las condiciones, no lo guarda en la base de datos
-                    mensaje = "Tu comentario contiene palabras no permitidas. Por favor, sé respetuoso."
-                });
-            }
-
-            // aqui se guardaria el comentario en la base de datos.
-            return Json(new
-            {
-                ok = true,
-                mensaje = "¡Comentario publicado con éxito!"
-                //mensaje de ocnfirmacion
-            });
-        }
-
-        public IActionResult Ajustes()
-    {
-        return View();
+        return View(datos);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ToggleLike(int promptId, string query, string filtro)
+    {
+        int idUsuario = 1;
+
+        await _explorarApi.ToggleLikeAsync(promptId, idUsuario); //llama al servicio para mandarlo al API
+
+        return RedirectToAction("Explorar", new //recarga pagina para ver cambio 
+        {
+            query = query,
+            filtro = filtro
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ToggleGuardar(int promptId, string query, string filtro)
+    {
+        int idUsuario = 1;
+
+        await _explorarApi.ToggleGuardarAsync(promptId, idUsuario);
+
+        return RedirectToAction("Explorar", new
+        {
+            query = query,
+            filtro = filtro
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> PublicarComentario(int promptId, string comentario, string query, string filtro)
+    {
+        int idUsuario = 1;
+
+        await _explorarApi.PublicarComentarioAsync(
+            promptId,
+            idUsuario,
+            comentario ?? ""
+        );
+
+        return RedirectToAction("Explorar", new
+        {
+            query = query,
+            filtro = filtro
+        });
+    }
+
+//FIN EXPLORAR
+
+//TIEMPO EXPLORAR
+private static string CalcularTiempoRelativo(string? fechaTexto)
+{
+    if (string.IsNullOrWhiteSpace(fechaTexto))
+    {
+        return "fecha no disponible";
+    }
+
+    if (!DateTime.TryParse(fechaTexto, out DateTime fecha))
+    {
+        return fechaTexto;
+    }
+
+    var diferencia = DateTime.Now - fecha;
+
+    if (diferencia.TotalMinutes < 1)
+    {
+        return "hace unos segundos";
+    }
+
+    if (diferencia.TotalMinutes < 60)
+    {
+        return $"hace {(int)diferencia.TotalMinutes} minutos";
+    }
+
+    if (diferencia.TotalHours < 24)
+    {
+        return $"hace {(int)diferencia.TotalHours} horas";
+    }
+
+    if (diferencia.TotalDays < 7)
+    {
+        return $"hace {(int)diferencia.TotalDays} días";
+    }
+
+    return fecha.ToString("dd/MM/yyyy");
+}
+//FIN EXPLORAR TIEMPO
+
+//LOGIN
     // Pantalla de login (primera página al iniciar la app).
     [HttpGet]
     public IActionResult Login()
@@ -415,23 +326,43 @@ public class HomeController : Controller
         HttpContext.Session.Clear();
         return RedirectToAction(nameof(Login));
     }
+//FIN LOGIN
 
-    public IActionResult Crear()
-    {
-        PromptViewModelCrear prompt = new PromptViewModelCrear();
+//CREAR
+    [HttpGet]
+public async Task<IActionResult> Crear()
+{
+    PromptViewModelCrear vm = new PromptViewModelCrear();
 
-        return View(prompt);
-    }
+    vm.Categorias = await _promptService.ObtenerCategoriasPrompt();
+    vm.Tips = await _promptService.ObtenerTipsPrompt();
+    vm.ConsejosRapidos = await _promptService.ObtenerConsejosRapidosPrompt();
+
+    return View(vm);
+}
 
 [HttpPost]
-    public IActionResult Create(PromptViewModelCrear prompt)
+public async Task<IActionResult> Crear(PromptViewModelCrear vm)
+{
+    int idUsuario = IdSesion();
+
+    bool resultado = await _promptService.CrearPrompt(vm, idUsuario);
+
+    vm.Categorias = await _promptService.ObtenerCategoriasPrompt();
+    vm.Tips = await _promptService.ObtenerTipsPrompt();
+    vm.ConsejosRapidos = await _promptService.ObtenerConsejosRapidosPrompt();
+
+    if (resultado)
     {
-       
-
         ViewData["Mensaje"] = "Se guardó correctamente tu prompt";
-
-        return View(prompt);
     }
+    else
+    {
+        ViewData["Error"] = "No se pudo guardar el prompt";
+    }
+
+    return View(vm);
+}
 
     // PERFIL
     private static readonly (string Id, string Icon, string Label)[] PerfilTabsNav =
@@ -574,7 +505,7 @@ public class HomeController : Controller
         AuthorName = S(d, "authorName"), Username = S(d, "username"), InitialsProfile = S(d, "initialsProfile"),
         CircleColor = S(d, "circleColor", "#104B70"), Category = S(d, "category"),
         Likes = N(d, "likes"), Comments = N(d, "comments"), Saves = N(d, "saves"),
-        CreatedAt = S(d, "fechaPublicacion"), Trending = N(d, "trending") == 1,
+        CreatedAt = S(d, "fechaPublicacion"), Trending = N(d, "trending"),
     };
 
     private static PerfilActividadItemViewModel Actividad(Dictionary<string, object> d) => new()
@@ -641,5 +572,19 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    //TIENDA
+    public IActionResult Tienda()
+{
+    return View();
+}
+
+//JUEGOS
+    public IActionResult Juego()
+    {
+        return View();
+
+
     }
 }

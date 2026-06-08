@@ -15,6 +15,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+
+
 builder.Services.AddHttpClient<CSweb.Services.IPerfilApiService, CSweb.Services.PerfilApiService>(client =>
 {
     client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
@@ -22,6 +24,21 @@ builder.Services.AddHttpClient<CSweb.Services.IPerfilApiService, CSweb.Services.
 
 // Solo registro DI; HomeApiService usa URLs absolutas en el puerto 8001.
 builder.Services.AddHttpClient<CSweb.Services.IHomeApiService, CSweb.Services.HomeApiService>();
+
+builder.Services.AddHttpClient<CSweb.Services.IExplorarApiService, CSweb.Services.ExplorarApiService>(client =>
+{
+    client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
+});
+
+builder.Services.AddHttpClient<CSweb.Services.IUsuarioAPIService, CSweb.Services.UsuarioAPIService>(client =>
+{
+    client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
+});
+
+builder.Services.AddHttpClient<CSweb.Services.IPromptService, CSweb.Services.PromptService>(client =>
+{
+    client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
+});
 
 var app = builder.Build();
 

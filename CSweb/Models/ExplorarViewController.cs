@@ -1,14 +1,14 @@
-using System.Collections.Generic;
+// datos que necesita la página Explorar
 
+using System.Collections.Generic;
 namespace CSweb.Models
 {
-    // datos que necesita la página Explorar
     public class ExplorarViewModel
     {
         // lista de prompts que se desplegarán en la pantalla
         public List<PromptViewModel> Prompts { get; set; }
 
-        // lista de filtros: Recientes, Más Gustados, Más Guardados, etc.
+        // lista de filtros: Tendencias, Recientes, Más Gustados, etc.
         public List<string> Filters { get; set; }
 
         // guarda lo que el usuario escribió en la barra de búsqueda

@@ -1,15 +1,12 @@
 @model CSweb.Models.PromptViewModelCrear
 
-<!--CSS de esta pantalla (estilos.css)-->
-@section Styles {
-    <link rel="stylesheet" href="~/css/estilos.css" asp-append-version="true" />
-}
 
-<!-- contenedor general de la página -->
+
+<!-- contenedor general de la página (py es padding vertical 4)(btsp container para que no tome todo el ancho de la pagina) -->
 <div class="create-page py-4">
     <div class="container">
 
-        <!-- grid principal: divide la pantalla en columna izquierda y columna derecha -->
+        <!--grid principal: divide la pantalla en columna izquierda y columna derecha(total 3fr)(2fractions a izq, 1fr a derecha) -->
         <div class="main-grid">
 
             <!--columna izquierda-->
@@ -34,6 +31,20 @@
                             <input asp-for="Title"
                                    class="form-control form-control-custom"
                                    placeholder="Dale un título a tu creación..." />
+                        </div>
+                  
+                    <!-- campo:Categoría -->
+                        <div class="mb-3">
+                            <label asp-for="IdCategoria" class="form-label">Categoría</label>
+
+                            <select asp-for="IdCategoria" class="form-control form-control-custom">
+                                <option value="">Selecciona una categoría...</option>
+
+                                @foreach (var categoria in Model.Categorias)
+                                {
+                                    <option value="@categoria.IdCategoria">@categoria.Nombre</option>
+                                }
+                            </select>
                         </div>
 
                     <!-- campo:Descripción -->
@@ -112,71 +123,34 @@
     </p>
 </section>
 
-<!-- card consejo 1 -->
-<section class="card-custom card-orange">
-    <h3 class="card-title-custom">
-        <i class="bi bi-lightbulb"></i>
-        1. Sé Específico
-    </h3>
+@{
+    string[] clasesCards = { "card-orange", "card-blue", "card-green", "card-yellow" };
+    string[] iconosCards = { "bi-lightbulb", "bi-check-circle", "bi-book", "bi-exclamation-circle" };
+    int contadorTip = 0;
+}
 
-    <p class="card-text-custom">
-        Incluye detalles sobre el estilo, ambiente y tema para mejores resultados.
-    </p>
+@foreach (var tip in Model.Tips)
+{
+    var clase = clasesCards[contadorTip % clasesCards.Length];
+    var icono = iconosCards[contadorTip % iconosCards.Length];
 
-    <p class="card-text-custom mb-0">
-        Ejemplo: "Un atardecer sobre montañas con tonos naranja cálidos".
-    </p>
-</section>
+    <section class="card-custom @clase">
+        <h3 class="card-title-custom">
+            <i class="bi @icono"></i>
+            @(contadorTip + 1). @tip.Titulo
+        </h3>
 
-<!--card consejo 2  -->
-<section class="card-custom card-blue">
-    <h3 class="card-title-custom">
-        <i class="bi bi-check-circle"></i>
-        2. Usa Palabras Descriptivas
-    </h3>
+        <p class="card-text-custom">
+            @tip.Descripcion
+        </p>
 
-    <p class="card-text-custom">
-        Añade adjetivos y descriptores para mejorar la calidad de tu prompt.
-    </p>
+        <p class="card-text-custom mb-0">
+            Ejemplo: "@tip.Ejemplo"
+        </p>
+    </section>
 
-    <p class="card-text-custom mb-0">
-        Ejemplo: "Vibrante, minimalista, moderno, elegante, pacífico".
-    </p>
-</section>
-
-<!-- card consejo 3 -->
-<section class="card-custom card-green">
-    <h3 class="card-title-custom">
-        <i class="bi bi-book"></i>
-        3. Establece el Contexto
-    </h3>
-
-    <p class="card-text-custom">
-        Describe el entorno, hora del día o atmósfera que deseas.
-    </p>
-
-    <p class="card-text-custom mb-0">
-        Ejemplo: "En una acogedora cafetería durante la hora dorada".
-    </p>
-</section>
-
-<!-- card consejo 4-->
-<section class="card-custom card-yellow">
-    <h3 class="card-title-custom">
-        <i class="bi bi-exclamation-circle"></i>
-        4. Evita la Ambigüedad
-    </h3>
-
-    <p class="card-text-custom">
-        Sé claro sobre lo que quieres para evitar confusión en los resultados.
-    </p>
-
-    <p class="card-text-custom mb-0">
-        Ejemplo: "Retrato de cerca, no foto de cuerpo completo".
-    </p>
-</section>
-                
-
+    contadorTip++;
+}
                 <!-- card consejos rapidos -->
                 <section class="card-custom">
                     <h3 class="card-title-custom">
@@ -185,10 +159,10 @@
                     </h3>
 
                     <ul class="example-list">
-                        <li>Prompts más largos suelen dar mejores resultados.</li>
-                        <li>Incluye estilos artísticos o referencias.</li>
-                        <li>Especifica ángulos de cámara o perspectivas.</li>
-                        <li>Menciona condiciones de iluminación y ambiente.</li>
+                    @foreach (var consejo in Model.ConsejosRapidos)
+                    {
+                        <li>@consejo.Texto</li>
+                    }
                     </ul>
                 </section>
 
@@ -200,7 +174,7 @@
 
 <!-- confirmación -->
 
-<!-- solo aparece cuando el Controller manda un mensaje en ViewData["Mensaje"] -->
+<!-- solo aparece cuando el Controller manda un mensaje en ViewData["Mensaje"](modal es clase de btsp ) -->
 @if (ViewData["Mensaje"] != null)
 {
     <div class="modal fade show" tabindex="-1" style="display:block; background-color: rgba(172, 221, 237, 0.898);">
@@ -217,7 +191,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <a asp-action="Create" class="btn btn-primary">
+                    <a asp-action="Crear" class="btn btn-primary">
                         Ok
                     </a>
                 </div>
@@ -227,43 +201,7 @@
     </div>
 }
 
-<!-- javascript -->
 @section Scripts {
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    <script src="~/js/crear.js" asp-append-version="true"></script>
+    }
 
-            // Se obtienen los elementos del formulario por su id
-            const titleInput = document.getElementById("Title");
-            const descriptionInput = document.getElementById("Description");
-            const promptInput = document.getElementById("Prompt");
-            const generateButton = document.getElementById("generateButton");
-            const clearButton = document.getElementById("clearButton");
-
-            // revisa si los tres campos tienen texto
-            // si falta alguno, el botón Publicar se queda desactivado.
-            function revisarFormulario() {
-                generateButton.disabled =
-                    titleInput.value.trim() === "" ||
-                    descriptionInput.value.trim() === "" ||
-                    promptInput.value.trim() === "";
-            }
-
-            // cada vez que el usuario escribe, se revisa el formulario
-            titleInput.addEventListener("input", revisarFormulario);
-            descriptionInput.addEventListener("input", revisarFormulario);
-            promptInput.addEventListener("input", revisarFormulario);
-
-            // limpia los campos cuando el usuario presiona el botón Limpiar
-            clearButton.addEventListener("click", function () {
-                titleInput.value = "";
-                descriptionInput.value = "";
-                promptInput.value = "";
-
-                revisarFormulario();
-            });
-
-            // revisión inicial al cargar la página
-            revisarFormulario();
-        });
-    </script>
-}

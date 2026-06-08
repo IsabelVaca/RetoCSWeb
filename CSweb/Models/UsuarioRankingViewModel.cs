@@ -1,13 +1,14 @@
-namespace CSweb.Models
 
+namespace CSweb.Models
 {
     public class UsuarioRankingViewModel
     {
-        public int Id { get; set; } 
+        public int IDUsuario { get; set; }
+        public string NombreUsuario { get; set; } = "";
+        public string UserName { get; set; } = "";
+        public string RutaFotoPerfil { get; set; } = "";
         public int Puntos { get; set; }
+        public int TotalLikes { get; set; }
         public int Posicion { get; set; }
-        public string userName { get; set; }
-        public string imagen { get; set; }
-
     }
 }
