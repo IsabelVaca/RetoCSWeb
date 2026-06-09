@@ -15,7 +15,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = "http://127.0.0.1:8001/home/usuarios-activos";
+                var url = "http://10.14.255.42:8001/home/usuarios-activos";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
@@ -34,7 +34,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = "http://127.0.0.1:8001/home/tendencias-actuales";
+                var url = "http://10.14.255.42:8001/home/tendencias-actuales";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
@@ -64,7 +64,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = "http://127.0.0.1:8001/home/usuarios-sugeridos";
+                var url = "http://10.14.255.42:8001/home/usuarios-sugeridos";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
@@ -101,7 +101,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = "http://127.0.0.1:8001/home/actividades-recientes";
+                var url = "http://10.14.255.42:8001/home/actividades-recientes";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
@@ -145,7 +145,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = "http://127.0.0.1:8001/home/prompts-hoy";
+                var url = "http://10.14.255.42:8001/home/prompts-hoy";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
@@ -165,7 +165,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = "http://127.0.0.1:8001/home/prompts-totales";
+                var url = "http://10.14.255.42:8001/home/prompts-totales";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)

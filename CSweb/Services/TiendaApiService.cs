@@ -17,7 +17,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = $"http://127.0.0.1:8001/tienda/{idUsuario}";
+                var url = $"http://10.14.255.42:8001/tienda/{idUsuario}";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
@@ -54,7 +54,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = $"http://127.0.0.1:8001/tienda/cobalts/{idUsuario}";
+                var url = $"http://10.14.255.42:8001/tienda/cobalts/{idUsuario}";
                 var response = await _httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
@@ -78,7 +78,7 @@ namespace CSweb.Services
         {
             try
             {
-                var url = "http://127.0.0.1:8001/tienda/comprar";
+                var url = "http://10.14.255.42:8001/tienda/comprar";
                 var json = JsonSerializer.Serialize(new
                 {
                     idUsuario = request.IdUsuario,

@@ -15,7 +15,7 @@ public class PromptService : IPromptService
 
     public async Task<List<CategoriaPromptViewModel>> ObtenerCategoriasPrompt()
     {
-        var url = "http://127.0.0.1:8001/categorias-prompt";
+        var url = "http://10.14.255.42:8001/categorias-prompt";
 
         var response = await _httpClient.GetAsync(url);
 
@@ -39,7 +39,7 @@ public class PromptService : IPromptService
 
     public async Task<bool> CrearPrompt(PromptViewModelCrear prompt, int idUsuario)
     {
-        var url = "http://127.0.0.1:8001/prompts";
+        var url = "http://10.14.255.42:8001/prompts";
 
         var promptApi = new
         {
@@ -65,7 +65,7 @@ public class PromptService : IPromptService
 
     public async Task<List<TipPromptViewModel>> ObtenerTipsPrompt()
     {
-        var url = "http://127.0.0.1:8001/tips-prompt";
+        var url = "http://10.14.255.42:8001/tips-prompt";
 
         var response = await _httpClient.GetAsync(url);
 
@@ -89,7 +89,7 @@ public class PromptService : IPromptService
 
     public async Task<List<ConsejoRapidoPromptViewModel>> ObtenerConsejosRapidosPrompt()
     {
-        var url = "http://127.0.0.1:8001/consejos-rapidos-prompt";
+        var url = "http://10.14.255.42:8001/consejos-rapidos-prompt";
 
         var response = await _httpClient.GetAsync(url);
 

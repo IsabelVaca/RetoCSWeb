@@ -7,7 +7,7 @@ namespace CSweb.Services
     {
         private readonly HttpClient _httpClient;
 
-        private const string BaseUrl = "http://127.0.0.1:8001";
+        private const string BaseUrl = "http://10.14.255.42:8001";
 
         public UsuarioAPIService(HttpClient httpClient)
         {

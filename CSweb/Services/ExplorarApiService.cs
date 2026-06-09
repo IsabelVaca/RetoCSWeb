@@ -32,7 +32,7 @@ namespace CSweb.Services
 
             // arma la ruta del endpoint de explorar con query, usuario actual y filtro
             string url =
-                $"http://127.0.0.1:8001/explorar/prompts?query={Uri.EscapeDataString(query)}" +
+                $"http://10.14.255.42:8001/explorar/prompts?query={Uri.EscapeDataString(query)}" +
                 $"&idUsuarioActual={idUsuarioActual}" +
                 $"&filtro={Uri.EscapeDataString(filtro)}";
 
@@ -66,7 +66,7 @@ namespace CSweb.Services
 
         public async Task<LikeResponseViewModel?> ToggleLikeAsync(int idPrompt, int idUsuario)
         {
-            string url = $"http://127.0.0.1:8001/explorar/prompts/{idPrompt}/like";
+            string url = $"http://10.14.255.42:8001/explorar/prompts/{idPrompt}/like";
             var body = new
             {
                 idUsuario = idUsuario
@@ -95,7 +95,7 @@ namespace CSweb.Services
 
         public async Task<GuardarResponseViewModel?> ToggleGuardarAsync(int idPrompt, int idUsuario)
         {
-            string url = $"http://127.0.0.1:8001/explorar/prompts/{idPrompt}/guardar";
+            string url = $"http://10.14.255.42:8001/explorar/prompts/{idPrompt}/guardar";
 
             var body = new
             {
@@ -137,7 +137,7 @@ namespace CSweb.Services
             {
                 return null;
             }
-            string url = $"http://127.0.0.1:8001/explorar/prompts/{idPrompt}/comentarios";
+            string url = $"http://10.14.255.42:8001/explorar/prompts/{idPrompt}/comentarios";
             var body = new
             {
                 idUsuario = idUsuario,
