@@ -6,15 +6,15 @@ namespace CSweb.Models
     public class ExplorarViewModel
     {
         // lista de prompts que se desplegarán en la pantalla
-        public List<PromptViewModel> Prompts { get; set; }
+        public List<PromptViewModel> Prompts { get; set; } = new();
 
         // lista de filtros: Tendencias, Recientes, Más Gustados, etc.
-        public List<string> Filters { get; set; }
+        public List<string> Filters { get; set; } = new();
 
         // guarda lo que el usuario escribió en la barra de búsqueda
-        public string Query { get; set; }
+        public string Query { get; set; } = "";
 
         // guarda el filtro que está seleccionado actualmente
-        public string FiltroActivo { get; set; }
+        public string FiltroActivo { get; set; } = "";
     }
 }
