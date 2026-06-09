@@ -14,6 +14,43 @@ namespace CSweb.Services
             _httpClient = httpClient;
         }
 
+        public async Task<(bool ok, int? idUsuario, string? mensaje)> LoginUsuarioAsync(
+            string username,
+            string contrasena)
+        {
+            try
+            {
+                var url =
+                    $"{BaseUrl}/loginUsuario" +
+                    $"?username={Uri.EscapeDataString(username)}" +
+                    $"&contrasena={Uri.EscapeDataString(contrasena)}";
+
+                var response = await _httpClient.GetAsync(url);
+                var json = await response.Content.ReadAsStringAsync();
+
+                var jsonOpts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var err = JsonSerializer.Deserialize<LoginApiErrorViewModel>(json, jsonOpts);
+                    var texto = err?.Mensaje ?? err?.Error ?? "Usuario o contraseña incorrectos.";
+                    return (false, null, texto);
+                }
+
+                var usuario = JsonSerializer.Deserialize<UsuarioLoginViewModel>(json, jsonOpts);
+                if (usuario == null || usuario.IdUsuario <= 0)
+                    return (false, null, "Respuesta de login inválida.");
+
+                return (true, usuario.IdUsuario, null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Excepción en LoginUsuarioAsync:");
+                Console.WriteLine(ex.Message);
+                return (false, null, "No se pudo conectar con la API de login.");
+            }
+        }
+
         public async Task<List<UsuarioRankingViewModel>> ObtenerUsuariosRanking()
         {
             try

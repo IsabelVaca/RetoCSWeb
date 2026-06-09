@@ -2,7 +2,6 @@ using CSweb.Models;
 
 namespace CSweb.Middleware;
 
-// Redirige a Login si no hay sesión activa (excepto Login, IniciarSesion y Error).
 public class RequireLoginMiddleware
 {
   private readonly RequestDelegate _next;
@@ -17,7 +16,6 @@ public class RequireLoginMiddleware
       return;
     }
 
-  // Sin flag de sesión, siempre mostrar login primero.
     var logeado = context.Session.GetInt32(AuthSessionKeys.Logeado) == 1;
     if (!logeado)
     {
@@ -36,7 +34,6 @@ public class RequireLoginMiddleware
     if (!string.Equals(controller, "Home", StringComparison.OrdinalIgnoreCase))
       return false;
 
-    // GET del formulario y POST al pulsar Entrar.
     if (string.Equals(action, "Login", StringComparison.OrdinalIgnoreCase)
         || string.Equals(action, "IniciarSesion", StringComparison.OrdinalIgnoreCase)
         || string.Equals(action, "Error", StringComparison.OrdinalIgnoreCase))

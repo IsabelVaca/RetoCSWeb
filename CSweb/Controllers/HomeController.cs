@@ -160,35 +160,29 @@ public async Task<IActionResult> Ranking(string query, string tipo = "general")
     [HttpGet]
     public async Task<IActionResult> Explorar(string query, string filtro)
     {
-        // si no seleccionó filtro, se usa Tendencias
         if (string.IsNullOrEmpty(filtro))
         {
             filtro = "Tendencias";
         }
 
-        // usuario actual simulado
-        int idUsuario = 1;
+        int idUsuario = IdSesion();
 
-        // se llama al API y llama al SP_ObtenerPromptsExplorar
-        // y despues regresa los prompts ordenados según el filtro
         var listaPrompts = await _explorarApi.ObtenerPromptsAsync(
             query ?? "",
             idUsuario,
             filtro
         );
 
-        if (listaPrompts == null) //usa lista vacia 
+        if (listaPrompts == null)
         {
             listaPrompts = new List<PromptViewModel>();
         }
 
-        // calcula tiempop relativo
         foreach (var prompt in listaPrompts)
         {
             prompt.CreatedAt = CalcularTiempoRelativo(prompt.FechaPublicacion);
         }
 
-        //crea modelo de pagina 
         var datos = new ExplorarViewModel
         {
             Prompts = listaPrompts,
@@ -209,11 +203,11 @@ public async Task<IActionResult> Ranking(string query, string tipo = "general")
     [HttpPost]
     public async Task<IActionResult> ToggleLike(int promptId, string query, string filtro)
     {
-        int idUsuario = 1;
+        int idUsuario = IdSesion();
 
-        await _explorarApi.ToggleLikeAsync(promptId, idUsuario); //llama al servicio para mandarlo al API
+        await _explorarApi.ToggleLikeAsync(promptId, idUsuario);
 
-        return RedirectToAction("Explorar", new //recarga pagina para ver cambio 
+        return RedirectToAction("Explorar", new
         {
             query = query,
             filtro = filtro
@@ -223,7 +217,7 @@ public async Task<IActionResult> Ranking(string query, string tipo = "general")
     [HttpPost]
     public async Task<IActionResult> ToggleGuardar(int promptId, string query, string filtro)
     {
-        int idUsuario = 1;
+        int idUsuario = IdSesion();
 
         await _explorarApi.ToggleGuardarAsync(promptId, idUsuario);
 
@@ -237,7 +231,7 @@ public async Task<IActionResult> Ranking(string query, string tipo = "general")
     [HttpPost]
     public async Task<IActionResult> PublicarComentario(int promptId, string comentario, string query, string filtro)
     {
-        int idUsuario = 1;
+        int idUsuario = IdSesion();
 
         await _explorarApi.PublicarComentarioAsync(
             promptId,
@@ -294,7 +288,6 @@ private static string CalcularTiempoRelativo(string? fechaTexto)
 //FIN EXPLORAR TIEMPO
 
 //LOGIN
-    // Pantalla de login (primera página al iniciar la app).
     [HttpGet]
     public IActionResult Login()
     {
@@ -304,26 +297,37 @@ private static string CalcularTiempoRelativo(string? fechaTexto)
         return View(new LoginViewModel());
     }
 
-    // Valida admin1 / 12345 y entra como el usuario con id 1.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult IniciarSesion(LoginViewModel model)
+    public async Task<IActionResult> IniciarSesion(LoginViewModel model)
     {
-        var usuarioOk = string.Equals(model.Usuario?.Trim(), LoginViewModel.UsuarioDemo, StringComparison.OrdinalIgnoreCase);
-        var passwordOk = model.Password == LoginViewModel.PasswordDemo;
+        if (string.IsNullOrWhiteSpace(model.Usuario))
+        {
+            model.Error = "Falta el username";
+            return View(nameof(Login), model);
+        }
 
-        if (usuarioOk && passwordOk)
+        if (string.IsNullOrWhiteSpace(model.Password))
+        {
+            model.Error = "Falta la contraseña";
+            return View(nameof(Login), model);
+        }
+
+        var (ok, idUsuario, mensaje) = await _usuarioService.LoginUsuarioAsync(
+            model.Usuario.Trim(),
+            model.Password.Trim());
+
+        if (ok && idUsuario.HasValue)
         {
             HttpContext.Session.SetInt32(AuthSessionKeys.Logeado, 1);
-            HttpContext.Session.SetInt32(AuthSessionKeys.UsuarioId, LoginViewModel.UsuarioPorDefectoId);
+            HttpContext.Session.SetInt32(AuthSessionKeys.UsuarioId, idUsuario.Value);
             return RedirectToAction(nameof(Index));
         }
 
-        model.Error = "Usuario o contraseña incorrectos.";
+        model.Error = mensaje ?? "Usuario o contraseña incorrectos.";
         return View(nameof(Login), model);
     }
 
-    // Cierra sesión y vuelve al login.
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
@@ -376,7 +380,6 @@ public async Task<IActionResult> Crear(PromptViewModelCrear vm)
         ("actividad", "bi-lightning-charge", "Actividad"),
     };
 
-    // Ver perfil (GET)
     public async Task<IActionResult> Perfil()
     {
         var id = IdSesion();
@@ -387,7 +390,6 @@ public async Task<IActionResult> Crear(PromptViewModelCrear vm)
         return View(vm);
     }
 
-    // POST al MVC; un solo PUT /perfil/{id} a Flask (datos y rutaFotoPerfil)
     [HttpPost]
     public async Task<IActionResult> EditarPerfil(PerfilEditarViewModel model)
     {
@@ -421,7 +423,6 @@ public async Task<IActionResult> Crear(PromptViewModelCrear vm)
         return RedirectToAction(nameof(Perfil));
     }
 
-    // Solo POST al MVC
     [HttpPost]
     public IActionResult PublicarComentarioPerfil(int promptId, string comentario, string? returnTab)
     {
@@ -429,16 +430,13 @@ public async Task<IActionResult> Crear(PromptViewModelCrear vm)
         return RedirectToAction(nameof(Perfil), new { tab = string.IsNullOrWhiteSpace(returnTab) ? "publicados" : returnTab });
     }
 
-    // Sesión y pestaña
     private int IdSesion()
     {
-        return HttpContext.Session.GetInt32(AuthSessionKeys.UsuarioId) ?? LoginViewModel.UsuarioPorDefectoId;
+        return HttpContext.Session.GetInt32(AuthSessionKeys.UsuarioId) ?? 0;
     }
 
     private static string Tab(string? t) =>
         string.IsNullOrWhiteSpace(t) || t.Equals("publicaciones", StringComparison.OrdinalIgnoreCase) ? "publicados" : t;
-
-    // Llamada API y ViewBag 
 
     private async Task<PerfilViewModel> CargarDesdeApi(int id, string tab)
     {

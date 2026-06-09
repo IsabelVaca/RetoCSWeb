@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CSweb.ViewComponents;
 
-// Carga userName desde la API de perfil para la pastilla del layout.
 public class UsuarioNavbarViewComponent : ViewComponent
 {
     private readonly IPerfilApiService _perfilApi;
@@ -13,7 +12,6 @@ public class UsuarioNavbarViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        // Sin login no hay id; el middleware ya redirige a Login.
         var id = HttpContext.Session.GetInt32(AuthSessionKeys.UsuarioId);
         if (id is not int usuarioId)
             return View(new UsuarioNavbarViewModel());
@@ -36,7 +34,6 @@ public class UsuarioNavbarViewComponent : ViewComponent
     private static string Leer(Dictionary<string, object> d, string clave) =>
         d.TryGetValue(clave, out var v) ? v?.ToString() ?? "" : "";
 
-    // Primeras 2 letras del userName para el círculo (ej. jimmy → JI).
     private static string Iniciales(string userName)
     {
         var u = userName.Trim();
