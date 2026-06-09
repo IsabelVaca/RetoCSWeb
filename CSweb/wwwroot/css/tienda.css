@@ -1,0 +1,162 @@
+.tienda-page {
+    min-height: 100vh;
+    background-color: #f6f7fb;
+    padding-top: 100px;
+    padding-bottom: 3rem;
+}
+.tienda-saldo-banner {
+    border-radius: 18px;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.tienda-saldo-icono {
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: white;
+}
+.tienda-saldo-label {
+    color: rgba(255,255,255,0.80);
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+.tienda-saldo-numero {
+    color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.tienda-titulo {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #132f38;
+    margin-bottom: 0.2rem;
+}
+.tienda-subtitulo {
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin-bottom: 1.25rem;
+}
+.tienda-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.tienda-filtro-btn {
+    background-color: white;
+    color: #4e545a;
+    border: 1px solid transparent;
+    border-radius: 50px;
+    padding: 6px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+.tienda-filtro-btn:hover,
+.tienda-filtro-btn.active {
+    background-color: #104B70;
+    color: white;
+    box-shadow: 0 4px 12px rgba(16,75,112,0.20);
+}
+.tienda-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(0,0,0,0.06);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.tienda-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(16,75,112,0.12);
+}
+.tienda-card-icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 14px;
+}
+.tienda-card-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+.tienda-card-nombre {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #132f38;
+    margin-bottom: 6px;
+}
+.tienda-card-desc {
+    font-size: 0.85rem;
+    color: #6c757d;
+    flex: 1;
+    margin-bottom: 12px;
+}
+.tienda-card-categoria {
+    display: inline-block;
+    background: rgba(16,75,112,0.08);
+    color: #104B70;
+    font-size: 0.78rem;
+    font-weight: 500;
+    border-radius: 50px;
+    padding: 3px 12px;
+    margin-bottom: 16px;
+}
+.tienda-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+}
+.tienda-precio {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #132f38;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.tienda-precio i {
+    color: #3b9de0;
+}
+.btn-comprar-item {
+    background-color: #104B70;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+.btn-comprar-item:hover {
+    background-color: #0c3b59;
+    color: white;
+}
+.btn-desbloqueado {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: default;
+}

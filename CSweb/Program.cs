@@ -15,8 +15,6 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-
-
 builder.Services.AddHttpClient<CSweb.Services.IPerfilApiService, CSweb.Services.PerfilApiService>(client =>
 {
     client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
@@ -39,6 +37,8 @@ builder.Services.AddHttpClient<CSweb.Services.IPromptService, CSweb.Services.Pro
 {
     client.BaseAddress = new Uri(perfilApiUrl.TrimEnd('/') + "/");
 });
+
+builder.Services.AddHttpClient<CSweb.Services.ITiendaApiService, CSweb.Services.TiendaApiService>();
 
 var app = builder.Build();
 
