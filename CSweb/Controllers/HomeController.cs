@@ -15,6 +15,7 @@ public class HomeController : Controller
     private readonly IExplorarApiService _explorarApi;
     private readonly IUsuarioAPIService _usuarioService;
     private readonly IPromptService _promptService;
+    private readonly ITiendaApiService _tiendaApi;
 
     public HomeController(
         ILogger<HomeController> logger,
@@ -23,7 +24,8 @@ public class HomeController : Controller
         IHomeApiService homeApi,
         IExplorarApiService explorarApi,
         IUsuarioAPIService usuarioService,
-        IPromptService promptService)
+        IPromptService promptService,
+        ITiendaApiService tiendaApi)
     {
         _logger = logger;
         _env = env;
@@ -32,6 +34,7 @@ public class HomeController : Controller
         _explorarApi = explorarApi;
         _usuarioService = usuarioService;
         _promptService = promptService;
+        _tiendaApi = tiendaApi;
     }
     public async Task<IActionResult> Index(string query)
     {
@@ -575,10 +578,44 @@ public async Task<IActionResult> Crear(PromptViewModelCrear vm)
     }
 
     //TIENDA
-    public IActionResult Tienda()
-{
-    return View();
-}
+    [HttpGet]
+    public async Task<IActionResult> Tienda()
+    {
+        int idUsuario = IdSesion();
+
+        var taskItems = _tiendaApi.ObtenerItemsTienda(idUsuario);
+        var taskSaldo = _tiendaApi.ObtenerSaldoCobalts(idUsuario);
+
+        await Task.WhenAll(taskItems, taskSaldo);
+
+        var vm = new TiendaViewModel
+        {
+            IdUsuario = idUsuario,
+            Saldo     = taskSaldo.Result.Saldo,
+            Items     = taskItems.Result
+        };
+
+        return View(vm);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ComprarItem(int idItem)
+    {
+        int idUsuario = IdSesion();
+
+        var request = new CompraRequestModel
+        {
+            IdUsuario = idUsuario,
+            IdItem    = idItem
+        };
+
+        var resultado = await _tiendaApi.ComprarItem(request);
+
+        TempData["CompraMensaje"] = resultado.Mensaje;
+        TempData["CompraOk"]      = resultado.Ok ? "1" : "0";
+
+        return RedirectToAction(nameof(Tienda));
+    }
 
 //JUEGOS
     public IActionResult Juego()

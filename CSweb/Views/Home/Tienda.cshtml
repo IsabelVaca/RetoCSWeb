@@ -1,0 +1,122 @@
+@model CSweb.Models.TiendaViewModel
+@{
+    ViewData["Title"] = "Tienda";
+    Layout = "_Layout";
+    var categorias = new[] { "Todos", "Avatares", "Marcos", "Títulos", "Efectos", "Temas", "Insignias" };
+    var filtroActivo = Context.Request.Query["filtro"].FirstOrDefault() ?? "Todos";
+    var itemsFiltrados = filtroActivo == "Todos"
+        ? Model.Items
+        : Model.Items.Where(i =>
+            i.NombreItem.Contains(filtroActivo, StringComparison.OrdinalIgnoreCase) ||
+            i.DescripcionItem.Contains(filtroActivo, StringComparison.OrdinalIgnoreCase)).ToList();
+    var colores = new[] { "#E8A87C", "#F6C90E", "#104B70", "#4CAF50", "#1a1a2e", "#F0A500" };
+    var iconos  = new[] { "bi-person-fill", "bi-image", "bi-award-fill", "bi-stars", "bi-palette-fill", "bi-star-fill" };
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/tienda.css" asp-append-version="true" />
+}
+
+<div class="tienda-page">
+    <div class="container">
+
+        @* Toast compra *@
+        @if (TempData["CompraMensaje"] != null)
+        {
+            var esOk = TempData["CompraOk"]?.ToString() == "1";
+            <div class="alert @(esOk ? "alert-success" : "alert-danger") alert-dismissible shadow mb-4" role="alert">
+                <i class="bi @(esOk ? "bi-check-circle-fill" : "bi-x-circle-fill") me-2"></i>
+                @TempData["CompraMensaje"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @* Banner saldo *@
+        <div class="tienda-saldo-banner fondo-degradado_R mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="tienda-saldo-icono">
+                    <i class="bi bi-gem"></i>
+                </div>
+                <div>
+                    <div class="tienda-saldo-label">Tus Gemas</div>
+                    <div class="tienda-saldo-numero">
+                        @(int.TryParse(Model.Saldo, out var s) ? s.ToString("N0") : Model.Saldo)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Título *@
+        <h2 class="tienda-titulo">Tienda de Personalizaciones</h2>
+        <p class="tienda-subtitulo">Usa tus gemas para desbloquear contenido exclusivo</p>
+
+        @* Filtros — GET sin JS *@
+        <div class="tienda-filtros mb-4">
+            @foreach (var cat in categorias)
+            {
+                <a asp-controller="Home"
+                   asp-action="Tienda"
+                   asp-route-filtro="@cat"
+                   class="tienda-filtro-btn @(cat == filtroActivo ? "active" : "")">
+                    @cat
+                </a>
+            }
+        </div>
+
+        @* Grid *@
+        <div class="row g-4">
+            @if (itemsFiltrados.Count == 0)
+            {
+                <div class="col-12 text-center text-muted py-5">No hay items en esta categoría.</div>
+            }
+            @foreach (var item in itemsFiltrados)
+            {
+                var color = colores[item.IDItem % colores.Length];
+                var icono = iconos[item.IDItem % iconos.Length];
+                var categoria =
+                    item.NombreItem.Contains("Avatar")  ? "Avatares"  :
+                    item.NombreItem.Contains("Marco")   ? "Marcos"    :
+                    item.NombreItem.Contains("Título")  ? "Títulos"   :
+                    item.NombreItem.Contains("Efecto")  ? "Efectos"   :
+                    item.NombreItem.Contains("Tema")    ? "Temas"     : "Insignias";
+
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="tienda-card">
+                        <div class="tienda-card-icono" style="background-color:@color;">
+                            @if (!string.IsNullOrWhiteSpace(item.UrlImagenItem))
+                            {
+                                <img src="@item.UrlImagenItem" alt="@item.NombreItem" class="tienda-card-img" />
+                            }
+                            else
+                            {
+                                <i class="bi @icono text-white"></i>
+                            }
+                        </div>
+                        <div class="tienda-card-nombre">@item.NombreItem</div>
+                        <div class="tienda-card-desc">@item.DescripcionItem</div>
+                        <span class="tienda-card-categoria">@categoria</span>
+                        <div class="tienda-card-footer">
+                            <div class="tienda-precio">
+                                <i class="bi bi-gem"></i> @item.Precio.ToString("N0")
+                            </div>
+                            @if (item.Desbloqueado)
+                            {
+                                <span class="btn-desbloqueado">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Obtenido
+                                </span>
+                            }
+                            else
+                            {
+                                <form method="post" asp-action="ComprarItem" asp-controller="Home">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="idItem" value="@item.IDItem" />
+                                    <button type="submit" class="btn-comprar-item">Comprar</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
