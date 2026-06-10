@@ -228,23 +228,28 @@ public async Task<IActionResult> Ranking(string query, string tipo = "general")
         });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> PublicarComentario(int promptId, string comentario, string query, string filtro)
+[HttpPost]
+public async Task<IActionResult> PublicarComentario(int promptId, string comentario, string query, string filtro)
+{
+    int idUsuario = IdSesion();
+
+    var resultadoComentario = await _explorarApi.PublicarComentarioAsync(
+        promptId,
+        idUsuario,
+        comentario ?? ""
+    );
+
+    if (resultadoComentario == null)
     {
-        int idUsuario = IdSesion();
-
-        await _explorarApi.PublicarComentarioAsync(
-            promptId,
-            idUsuario,
-            comentario ?? ""
-        );
-
-        return RedirectToAction("Explorar", new
-        {
-            query = query,
-            filtro = filtro
-        });
+        TempData["ComentarioError"] = "No se pudo publicar el comentario porque contiene una mala palabra.";
     }
+
+    return RedirectToAction("Explorar", new
+    {
+        query = query,
+        filtro = filtro
+    });
+}
 
 //FIN EXPLORAR
 

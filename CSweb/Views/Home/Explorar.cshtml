@@ -70,6 +70,14 @@
             </div>
 
             @* contenedor de prompts *@
+
+            @if (TempData["ComentarioError"] != null)
+            {
+                <div class="alert alert-warning rounded-4 shadow-sm mb-4">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    @TempData["ComentarioError"]
+                </div>
+            }
             <div class="row g-4" id="promptsGrid">
 
                 @if (Model?.Prompts != null && Model.Prompts.Count > 0)
@@ -171,14 +179,6 @@
                                                 </button>
                                             </form>
 
-                                        </div>
-
-                                        <div class="d-flex align-items-center gap-3">
-                                            <span class="text-muted extra-small">@prompt.CreatedAt</span>
-
-                                            <button type="button" class="stat-icon-btn share-icon-btn">
-                                                <i class="bi bi-share"></i>
-                                            </button>
                                         </div>
 
                                     </div>

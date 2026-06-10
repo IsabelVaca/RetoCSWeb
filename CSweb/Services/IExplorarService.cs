@@ -12,6 +12,5 @@ namespace CSweb.Services
 
         Task<GuardarResponseViewModel?> ToggleGuardarAsync(int idPrompt, int idUsuario);
 
-        Task<ComentarioResponseViewModel?> PublicarComentarioAsync(int idPrompt, int idUsuario, string texto);
-    }
+        Task<ComentarioResponseViewModel?> PublicarComentarioAsync(int idPrompt, int idUsuario, string texto);}
 }
